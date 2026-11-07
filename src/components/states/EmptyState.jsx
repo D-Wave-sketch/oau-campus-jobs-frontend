@@ -1,23 +1,29 @@
-// ============================================================================
-// SECTION: STATES - EMPTY
-// ============================================================================
-import { Button } from "@/components/ui/Button";
+"use client";
 
-export function EmptyState({ icon: Icon, title, description, actionLabel, onAction }) {
+// ============================================================================
+// SECTION: UI STATES - EMPTY STATE
+// ============================================================================
+import { clsx } from "clsx";
+
+export function EmptyState({ icon: Icon, title, description, action, className }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+    <div className={clsx("flex flex-col items-center justify-center py-12 px-4 text-center", className)}>
       {Icon && (
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-surface-2)] text-[var(--color-muted)]">
-          <Icon size={20} />
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-surface-2)] text-[var(--color-muted)] mb-3 border border-[var(--color-border)]">
+          {typeof Icon === "function" ? <Icon size={22} /> : Icon}
         </div>
       )}
-      <div>
-        <h3 className="text-base font-semibold text-[var(--color-ink)]">{title}</h3>
-        {description && <p className="mt-1 text-sm text-[var(--color-muted)] max-w-md">{description}</p>}
-      </div>
-      {actionLabel && onAction && (
-        <Button variant="outline" onClick={onAction}>{actionLabel}</Button>
+      {title && (
+        <h3 className="font-bold text-base text-[var(--color-ink)] tracking-tight">
+          {title}
+        </h3>
       )}
+      {description && (
+        <p className="text-xs text-[var(--color-muted)] mt-1 max-w-sm leading-relaxed">
+          {description}
+        </p>
+      )}
+      {action && <div className="mt-5">{action}</div>}
     </div>
   );
 }

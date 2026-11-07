@@ -1,13 +1,14 @@
 "use client";
 
 // ============================================================================
-// SECTION: ADMIN LAYOUT (WRAPPED CANVAS WITH ROUNDED CORNERS)
+// SECTION: ADMIN LAYOUT (SIDEBAR + NAVBAR + MOBILE NAV)
 // ============================================================================
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Navbar } from "@/components/layout/Navbar";
+import { BottomNav } from "@/components/layout/BottomNav";
 import { LoadingState } from "@/components/states/LoadingState";
 
 export default function AdminLayout({ children }) {
@@ -28,7 +29,7 @@ export default function AdminLayout({ children }) {
   }, [status, isAuthenticated, role, router]);
 
   if (status === "loading") {
-    return <LoadingState message="Checking access..." />;
+    return <LoadingState message="Checking admin access..." />;
   }
 
   if (!isAuthenticated || role !== "ADMIN") {
@@ -37,14 +38,17 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-[var(--color-surface-2)] flex flex-col lg:flex-row lg:h-screen lg:overflow-hidden">
-      {/* Collapsible Sidebar */}
+      {/* Desktop Collapsible Sidebar */}
       <Sidebar role="ADMIN" />
 
-      {/* Wrapped Canvas around the page with rounded corners */}
-      <div className="flex-1 flex flex-col min-w-0 lg:my-2.5 lg:mr-2.5 lg:rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm overflow-hidden transition-all duration-300">
+      {/* Main Content Canvas */}
+      <div className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-0 lg:my-2.5 lg:mr-2.5 lg:rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm overflow-hidden transition-all duration-300">
         <Navbar />
         <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">{children}</main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <BottomNav role="ADMIN" />
     </div>
   );
 }

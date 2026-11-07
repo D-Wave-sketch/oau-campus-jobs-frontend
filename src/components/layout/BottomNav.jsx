@@ -44,11 +44,11 @@ const employerNav = [
 ];
 
 const adminNav = [
+  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/employers", label: "Employers", icon: ShieldCheck },
   { href: "/admin/jobs", label: "Jobs", icon: Briefcase },
   { href: "/admin/reports", label: "Reports", icon: Flag },
-  { href: "/admin/users", label: "More", icon: Users },
 ];
 
 export function BottomNav({ role }) {
@@ -73,8 +73,8 @@ export function BottomNav({ role }) {
         {nav.map((item) => {
           const Icon = item.icon;
           const active =
-            item.href === "/"
-              ? pathname === "/"
+            item.href === "/" || item.href === "/admin" || item.href === "/employer"
+              ? pathname === item.href
               : pathname === item.href || pathname.startsWith(item.href + "/");
 
           return (
