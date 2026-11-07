@@ -24,6 +24,8 @@ export function JobDetail({
   saved,
   applied,
   disabled,
+  hideActions = false,
+  fullPage = false,
 }) {
   if (!job) {
     return (
@@ -36,7 +38,8 @@ export function JobDetail({
             Select a job to view details
           </p>
           <p className="mt-1 text-xs text-[var(--color-muted)] max-w-xs leading-relaxed">
-            Choose an opportunity from the list on the left to read full responsibilities and submit your application.
+            Choose an opportunity from the list on the left to read full
+            responsibilities and submit your application.
           </p>
         </div>
       </div>
@@ -51,12 +54,29 @@ export function JobDetail({
   const closed = job.status === "CLOSED";
 
   return (
-    <div className="flex h-full flex-col justify-between">
-      {/* Scrollable Center-Fitted Content */}
-      <div className="flex-1 overflow-y-auto px-5 py-6 sm:px-8 sm:py-8">
-        <div className="mx-auto max-w-xl space-y-6">
+    <div
+      className={
+        fullPage
+          ? "flex flex-1 flex-col w-full bg-[var(--color-surface)]"
+          : "flex h-full min-h-0 flex-col overflow-hidden"
+      }
+    >
+      <div
+        className={
+          fullPage
+            ? "flex-1 space-y-6"
+            : "flex min-h-0 flex-1 flex-col gap-4 overflow-hidden px-5 py-5 sm:px-6 sm:py-5"
+        }
+      >
+        <div
+          className={
+            fullPage
+              ? "space-y-6"
+              : "detail-preview-scrollbar min-h-0 flex-1 space-y-5 overflow-y-auto pr-2"
+          }
+        >
           {/* Header Row: Single Status Indicator & Metadata */}
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex items-center justify-between gap-2">
               {closed ? (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1 text-xs font-medium text-[var(--color-muted)]">
@@ -64,35 +84,46 @@ export function JobDetail({
                   Applications Closed
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Active Opening
                 </span>
               )}
 
               {job.deadline && (
-                <span className="inline-flex items-center gap-1 text-[11px] text-[var(--color-muted)]">
-                  <Clock size={12} className="text-[var(--color-subtle)]" />
-                  Deadline: {new Date(job.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                <span className="inline-flex items-center gap-1 text-xs text-[var(--color-muted)] font-mono">
+                  <Clock size={13} className="text-[var(--color-subtle)]" />
+                  Deadline:{" "}
+                  {new Date(job.deadline).toLocaleDateString("en-GB", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
                 </span>
               )}
             </div>
 
             {/* Title & Employer */}
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-[var(--color-ink)] leading-snug">
+            <div className="space-y-2.5">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-[var(--color-ink)] leading-snug tracking-tight font-[family-name:var(--font-poppins)]">
                 {job.title}
               </h2>
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[var(--color-muted)]">
-                <span className="flex items-center gap-1.5 font-medium text-[var(--color-ink)]">
-                  <Building2 size={14} className="text-[var(--color-accent)] shrink-0" />
+              <div className="flex flex-wrap items-center gap-2.5 text-sm text-[var(--color-muted)]">
+                <span className="flex items-center gap-1.5 font-bold text-[var(--color-ink)]">
+                  <Building2
+                    size={15}
+                    className="text-[var(--color-accent)] shrink-0"
+                  />
                   {emp}
                 </span>
                 {job.location && (
                   <>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
-                      <MapPin size={13} className="text-[var(--color-subtle)] shrink-0" />
+                    <span className="text-[var(--color-subtle)]">•</span>
+                    <span className="flex items-center gap-1 text-[var(--color-muted)]">
+                      <MapPin
+                        size={14}
+                        className="text-[var(--color-subtle)] shrink-0"
+                      />
                       {job.location}
                     </span>
                   </>
@@ -102,96 +133,104 @@ export function JobDetail({
           </div>
 
           {/* Key Info Chips */}
-          <div className="flex flex-wrap items-center gap-2 pt-1">
+          <div className="flex shrink-0 flex-wrap items-center gap-2.5 py-4 border-y border-[var(--color-border)]">
             {job.category && (
-              <span className="inline-flex items-center gap-1 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1.5 text-xs font-medium text-[var(--color-ink)]">
-                <Tag size={12} className="text-[var(--color-subtle)]" />
+              <span className="inline-flex items-center gap-1.5 rounded-[4px] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1.5 text-xs font-semibold text-[var(--color-ink)]">
+                <Tag size={13} className="text-[var(--color-subtle)]" />
                 {job.category}
               </span>
             )}
 
             {job.employmentType && (
-              <span className="inline-flex items-center gap-1 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1.5 text-xs font-medium text-[var(--color-ink)]">
-                <Briefcase size={12} className="text-[var(--color-subtle)]" />
+              <span className="inline-flex items-center gap-1.5 rounded-[4px] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1.5 text-xs font-semibold text-[var(--color-ink)]">
+                <Briefcase size={13} className="text-[var(--color-subtle)]" />
                 {job.employmentType.replace("_", " ")}
               </span>
             )}
 
             {job.compensation && (
-              <span className="inline-flex items-center gap-1 rounded-xl border border-amber-200/80 bg-amber-50/70 px-3 py-1.5 text-xs font-semibold text-amber-900">
-                <Banknote size={13} className="text-amber-700" />
+              <span className="inline-flex items-center gap-1.5 rounded-[4px] border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-900">
+                <Banknote size={14} className="text-amber-700" />
                 {job.compensation}
               </span>
             )}
           </div>
 
-          {/* Job Description Card */}
-          <div className="space-y-2 pt-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--color-subtle)]">
+          {/* Job Description (Clean, Open Typography — No Boxed Borders) */}
+          <div className="min-h-0 space-y-3 pt-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--color-muted)] font-mono">
               Role Description &amp; Details
             </h3>
-            <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-2)]/40 p-4 sm:p-5 text-sm text-[var(--color-ink)] leading-relaxed whitespace-pre-wrap">
-              {job.description}
+            <div className="text-[15px] sm:text-base text-[var(--color-ink)] leading-relaxed whitespace-pre-wrap font-normal">
+              {job.description || "No description provided."}
             </div>
           </div>
 
           {/* Posted By Information */}
-          <div className="rounded-xl border border-[var(--color-border)]/50 bg-[var(--color-surface)] p-3 text-xs text-[var(--color-muted)] flex items-center justify-between">
+          <div className="border-t border-[var(--color-border)] pt-5 text-xs text-[var(--color-muted)] flex items-center justify-between">
             <span className="flex items-center gap-2">
               <Briefcase size={14} className="text-[var(--color-accent)]" />
               Verified Obafemi Awolowo University Campus Listing
             </span>
-            <span className="font-medium text-[var(--color-ink)]">{emp}</span>
+            <span className="font-semibold text-[var(--color-ink)]">{emp}</span>
           </div>
         </div>
       </div>
 
       {/* Centered Fitted Bottom Action Bar */}
-      <div className="sticky bottom-0 border-t border-[var(--color-border)] bg-[var(--color-surface)]/95 px-5 py-4 backdrop-blur-sm sm:px-8">
-        <div className="mx-auto flex max-w-xl items-center gap-3">
-          {applied ? (
-            <div className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/90 py-2.5 text-xs font-semibold text-emerald-800">
-              <CheckCircle2 size={16} />
-              <span>Application Submitted</span>
-            </div>
-          ) : (
+      {!hideActions && (
+        <div
+          className={
+            fullPage
+              ? "sticky bottom-14 lg:bottom-0 z-30 border-t border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-md px-4 py-3 sm:px-6 shadow-[0_-4px_16px_rgba(0,0,0,0.03)]"
+              : "shrink-0 border-t border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3"
+          }
+        >
+          <div className="flex items-center gap-2.5">
+            {applied ? (
+              <div className="flex flex-1 items-center justify-center gap-2 rounded-[4px] border border-emerald-200 bg-emerald-50/90 py-2.5 text-xs sm:text-sm font-semibold text-emerald-800">
+                <CheckCircle2 size={16} />
+                <span>Application Submitted</span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={onApply}
+                disabled={disabled || closed}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-[4px] bg-[var(--color-apply)] py-2.5 text-sm font-bold text-white transition-colors duration-150 hover:bg-[var(--color-apply-hover)] disabled:opacity-50 disabled:pointer-events-none"
+              >
+                {closed ? "Applications Closed" : "Apply now"}
+              </button>
+            )}
+
             <button
               type="button"
-              onClick={onApply}
-              disabled={disabled || closed}
-              className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-apply)] py-2.5 text-xs sm:text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[var(--color-apply-hover)] active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none"
+              onClick={onSave}
+              title={saved ? "Remove from saved" : "Save job"}
+              className="inline-flex items-center justify-center gap-1.5 rounded-[4px] border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3.5 py-2.5 text-sm font-semibold text-[var(--color-ink)] hover:bg-[var(--color-surface-2)] transition-colors"
             >
-              {closed ? "Applications Closed" : "Apply now"}
+              <Bookmark
+                size={16}
+                className={
+                  saved
+                    ? "fill-[var(--color-accent)] text-[var(--color-accent)]"
+                    : "text-[var(--color-muted)]"
+                }
+              />
+              <span className="hidden sm:inline">{saved ? "Saved" : "Save"}</span>
             </button>
-          )}
 
-          <button
-            type="button"
-            onClick={onSave}
-            title={saved ? "Remove from saved" : "Save job"}
-            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-4 py-2.5 text-xs sm:text-sm font-semibold text-[var(--color-ink)] hover:bg-[var(--color-surface-2)] transition-colors"
-          >
-            <Bookmark
-              size={15}
-              className={
-                saved
-                  ? "fill-[var(--color-accent)] text-[var(--color-accent)]"
-                  : "text-[var(--color-muted)]"
-              }
-            />
-            <span>{saved ? "Saved" : "Save"}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={onReport}
-            title="Report this job posting"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--color-border)] text-[var(--color-muted)] hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition-colors"
-          >
-            <Flag size={15} />
-          </button>
+            <button
+              type="button"
+              onClick={onReport}
+              title="Report this job posting"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] border border-[var(--color-border)] text-[var(--color-muted)] hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition-colors"
+            >
+              <Flag size={16} />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

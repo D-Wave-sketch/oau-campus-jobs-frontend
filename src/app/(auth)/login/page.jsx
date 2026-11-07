@@ -1,7 +1,7 @@
 "use client";
 
 // ============================================================================
-// SECTION: LOGIN PAGE (TRUE 2-COLUMN FULL-BLEED: FORM LEFT, IMAGE RIGHT)
+// SECTION: LOGIN PAGE — CLEAN 2-COLUMN SPLIT
 // ============================================================================
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -88,153 +88,160 @@ function LoginContent() {
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen bg-[#110f1a] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-400" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-[var(--color-muted)]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#110f1a] text-slate-100 grid lg:grid-cols-2">
-      {/* ==================================================================== */}
-      {/* COLUMN 1: FORM (LEFT) */}
-      {/* ==================================================================== */}
-      <div className="flex min-h-screen flex-col justify-center px-6 py-12 sm:px-12 md:px-16 xl:px-24">
-        <div className="w-full max-w-md mx-auto">
-          {/* Mobile Back Link */}
-          <div className="mb-6 lg:hidden">
+    <div className="min-h-screen w-full bg-white grid lg:grid-cols-2">
+      {/* ================================================================ */}
+      {/* COLUMN 1: FORM */}
+      {/* ================================================================ */}
+      <div className="flex min-h-screen flex-col justify-center px-6 py-12 sm:px-10 md:px-16 xl:px-20">
+        <div className="w-full max-w-sm mx-auto">
+
+          {/* Mobile back link */}
+          <div className="mb-8 lg:hidden">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 text-xs text-purple-200/70 hover:text-white transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs text-[var(--color-muted)] hover:text-[var(--color-ink)] transition-colors duration-150"
             >
-              <ArrowLeft size={14} />
-              <span>Back to website</span>
+              <ArrowLeft size={13} />
+              <span>Back</span>
             </Link>
           </div>
 
-          {/* Form Header */}
+          {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
+            <div className="mb-1.5 flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--color-ink)] text-white text-[9px] font-bold tracking-tight font-[family-name:var(--font-poppins)]">
+                OAU
+              </div>
+              <span className="text-sm font-semibold text-[var(--color-ink)] font-[family-name:var(--font-poppins)]">Campus Jobs</span>
+            </div>
+            <h1 className="mt-6 text-2xl font-bold tracking-tight text-[var(--color-ink)] font-[family-name:var(--font-poppins)]">
               Welcome back
             </h1>
-            <p className="mt-2 text-sm text-[#8c84a8]">
+            <p className="mt-1.5 text-sm text-[var(--color-muted)]">
               Don&apos;t have an account?{" "}
               <Link
                 href="/register"
-                className="font-medium text-purple-400 hover:text-purple-300 underline underline-offset-4 transition-colors"
+                className="font-semibold text-[var(--color-ink)] underline underline-offset-4 hover:opacity-70 transition-opacity"
               >
                 Sign up
               </Link>
             </p>
           </div>
 
-          {/* Session Expired Notice */}
+          {/* Session expired notice */}
           {reason === "expired" && (
-            <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-200">
-              <AlertCircle size={16} className="shrink-0 text-amber-400 mt-0.5" />
-              <span>Your session has expired. Please sign in again to continue.</span>
+            <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+              <AlertCircle size={14} className="shrink-0 text-amber-500 mt-0.5" />
+              <span>Your session expired. Please sign in again.</span>
             </div>
           )}
 
-          {/* Main Login Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email Field */}
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-3.5">
+            {/* Email */}
             <div>
-              <label htmlFor="email" className="sr-only">
+              <label htmlFor="login-email" className="block text-[12px] font-medium text-[var(--color-ink)] mb-1.5">
                 Email address
               </label>
               <input
-                id="email"
+                id="login-email"
                 type="email"
                 autoComplete="email"
-                placeholder="Email address"
+                placeholder="you@oauife.edu.ng"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={`w-full rounded-xl border ${
-                  fieldErrors.email ? "border-red-500/80" : "border-[#2e2844]"
-                } bg-[#1a162b] px-4 py-3 text-sm text-white placeholder-[#6f688e] transition-all duration-200 focus:border-[#7048e8] focus:bg-[#201b36] focus:outline-none focus:ring-1 focus:ring-[#7048e8]`}
+                className={`w-full rounded-lg border px-3.5 py-2.5 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-subtle)] bg-white transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-[var(--color-ink)] focus:ring-offset-1 ${
+                  fieldErrors.email ? "border-red-400 bg-red-50/30" : "border-[var(--color-border-strong)] hover:border-[var(--color-ink)]/30"
+                }`}
               />
               {fieldErrors.email && (
-                <p className="mt-1.5 text-xs text-red-400">{fieldErrors.email}</p>
+                <p className="mt-1 text-[11px] text-red-500">{fieldErrors.email}</p>
               )}
             </div>
 
-            {/* Password Field with Eye Toggle */}
+            {/* Password */}
             <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="login-password" className="block text-[12px] font-medium text-[var(--color-ink)]">
+                  Password
+                </label>
+                <button
+                  type="button"
+                  onClick={() => alert("Password reset link will be sent to your email.")}
+                  className="text-[11px] text-[var(--color-muted)] hover:text-[var(--color-ink)] transition-colors"
+                >
+                  Forgot?
+                </button>
+              </div>
               <div className="relative">
                 <input
-                  id="password"
+                  id="login-password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`w-full rounded-xl border ${
-                    fieldErrors.password ? "border-red-500/80" : "border-[#2e2844]"
-                  } bg-[#1a162b] px-4 py-3 pr-11 text-sm text-white placeholder-[#6f688e] transition-all duration-200 focus:border-[#7048e8] focus:bg-[#201b36] focus:outline-none focus:ring-1 focus:ring-[#7048e8]`}
+                  className={`w-full rounded-lg border px-3.5 py-2.5 pr-10 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-subtle)] bg-white transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-[var(--color-ink)] focus:ring-offset-1 ${
+                    fieldErrors.password ? "border-red-400 bg-red-50/30" : "border-[var(--color-border-strong)] hover:border-[var(--color-ink)]/30"
+                  }`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[#787196] hover:text-purple-300 transition-colors focus:outline-none"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-subtle)] hover:text-[var(--color-ink)] transition-colors focus:outline-none"
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
               {fieldErrors.password && (
-                <p className="mt-1.5 text-xs text-red-400">{fieldErrors.password}</p>
+                <p className="mt-1 text-[11px] text-red-500">{fieldErrors.password}</p>
               )}
             </div>
 
-            {/* Remember Me & Forgot Password Row */}
-            <div className="flex items-center justify-between pt-1">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-4 w-4 rounded border-[#383154] bg-[#1a162b] text-[#7048e8] focus:ring-purple-500 focus:ring-offset-0 focus:ring-offset-[#110f1a] accent-[#7048e8]"
-                />
-                <span className="text-xs text-[#9d95ba]">Remember me</span>
-              </label>
+            {/* Remember me */}
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-3.5 w-3.5 rounded border-[var(--color-border-strong)] accent-[var(--color-ink)]"
+              />
+              <span className="text-[12px] text-[var(--color-muted)]">Remember me</span>
+            </label>
 
-              <button
-                type="button"
-                onClick={() => alert("Password reset link will be sent to your student/employer email address.")}
-                className="text-xs text-purple-400 hover:text-purple-300 transition-colors"
-              >
-                Forgot password?
-              </button>
-            </div>
-
-            {/* Error Message */}
+            {/* Error */}
             {error && (
-              <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-[12px] text-red-700">
                 {error}
               </div>
             )}
 
-            {/* Wake Up Notice */}
+            {/* Wake-up notice */}
             {wake && (
-              <div className="rounded-xl border border-purple-500/30 bg-purple-500/10 p-3 text-xs text-purple-200">
-                Waking up the server, this can take up to a minute...
+              <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3 text-[12px] text-[var(--color-muted)]">
+                Waking up the server — this may take up to a minute.
               </div>
             )}
 
-            {/* Submit Button */}
+            {/* Submit */}
             <button
               type="submit"
+              id="login-submit-btn"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#7048e8] py-3 text-sm font-semibold text-white shadow-[0_4px_24px_rgba(112,72,232,0.4)] transition-all duration-200 hover:bg-[#6238df] hover:shadow-[0_6px_28px_rgba(112,72,232,0.55)] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 rounded-lg bg-[var(--color-ink)] py-2.5 text-sm font-semibold text-white transition-all duration-150 hover:bg-[var(--color-ink-2)] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed font-[family-name:var(--font-poppins)]"
             >
               {loading ? (
                 <>
-                  <Loader2 size={16} className="animate-spin" />
-                  <span>Signing in...</span>
+                  <Loader2 size={15} className="animate-spin" />
+                  <span>Signing in…</span>
                 </>
               ) : (
                 <span>Sign in</span>
@@ -242,24 +249,24 @@ function LoginContent() {
             </button>
           </form>
 
-          {/* Social Divider */}
-          <div className="relative my-7">
+          {/* Divider */}
+          <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#26203a]" />
+              <div className="w-full border-t border-[var(--color-border)]" />
             </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-[#110f1a] px-3 text-[#787196]">Or sign in with</span>
+            <div className="relative flex justify-center">
+              <span className="bg-white px-3 text-[11px] text-[var(--color-subtle)]">or continue with</span>
             </div>
           </div>
 
-          {/* Social Logins */}
+          {/* Social */}
           <AuthSocialButtons mode="login" />
         </div>
       </div>
 
-      {/* ==================================================================== */}
-      {/* COLUMN 2: FILLED IMAGE SHOWCASE (RIGHT - FULL BLEED) */}
-      {/* ==================================================================== */}
+      {/* ================================================================ */}
+      {/* COLUMN 2: SHOWCASE IMAGE (RIGHT) */}
+      {/* ================================================================ */}
       <div className="relative hidden lg:block h-full min-h-screen w-full">
         <AuthShowcaseCard />
       </div>
@@ -271,8 +278,8 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#110f1a] flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-purple-400" />
+        <div className="min-h-screen bg-white flex items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-[var(--color-muted)]" />
         </div>
       }
     >

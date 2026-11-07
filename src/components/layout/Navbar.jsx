@@ -4,7 +4,7 @@
 // SECTION: LAYOUT - NAVBAR
 // ============================================================================
 import Link from "next/link";
-import { Briefcase, Menu, PanelLeft } from "lucide-react";
+import { Briefcase, Menu, X, PanelLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/context/AuthContext";
 import { useSidebar } from "@/context/SidebarContext";
@@ -19,39 +19,38 @@ export function Navbar() {
     role === "ADMIN"
       ? "/admin/users"
       : role === "EMPLOYER"
-      ? "/employer"
-      : role === "STUDENT"
-      ? "/student/jobs"
-      : "/";
+        ? "/employer"
+        : role === "STUDENT"
+          ? "/student/jobs"
+          : "/";
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--color-border)] bg-[var(--color-surface)]/85 backdrop-blur supports-[backdrop-filter]:bg-[var(--color-surface)]/65">
+    <header className="sticky top-0 z-40 border-b border-[var(--color-ink)] bg-[var(--color-surface)]">
       <div className="flex items-center justify-between px-4 py-2.5 sm:px-6">
         <div className="flex items-center gap-3">
-          {/* Sidebar Toggle for Dashboard Pages (Desktop) */}
+          {/* Sidebar Toggle (authenticated, desktop) */}
           {isAuthenticated && role && (
             <button
               type="button"
               onClick={toggleSidebar}
               title="Toggle sidebar"
-              className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg text-[var(--color-muted)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-ink)] transition-colors"
+              className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg text-[var(--color-muted)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-ink)] transition-colors duration-150"
             >
-              <PanelLeft size={18} />
+              <PanelLeft size={17} />
             </button>
           )}
 
-          <Link href={homeHref} className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[var(--color-ink)] text-white">
-              <Briefcase size={14} />
+          <Link href={homeHref} className="flex items-center gap-2.5 group">
+            <div className="flex h-8 w-8 items-center justify-center rounded-[3px] bg-[var(--color-brand)] text-white text-[10px] font-bold tracking-tight shrink-0 transition-colors duration-150 group-hover:bg-[var(--color-brand-2)]">
+              OAU
             </div>
-            <div className="leading-tight">
-              <div className="text-sm font-bold tracking-tight text-[var(--color-ink)]">
-                OAU Campus Jobs
-              </div>
-            </div>
+            <span className="text-sm font-bold text-[var(--color-ink)]">
+              OAU Campus Jobs
+            </span>
           </Link>
         </div>
 
+        {/* Desktop nav */}
         <nav className="hidden items-center gap-1 md:flex">
           {!isAuthenticated && (
             <>
@@ -75,36 +74,53 @@ export function Navbar() {
           )}
         </nav>
 
+        {/* Mobile menu trigger */}
         <button
-          className="md:hidden p-1.5"
+          className="md:hidden flex h-8 w-8 items-center justify-center rounded-[4px] text-[var(--color-muted)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-ink)] transition-colors duration-150"
           onClick={() => setOpen(!open)}
-          aria-label="Menu"
+          aria-label={open ? "Close menu" : "Open menu"}
         >
-          <Menu size={18} />
+          {open ? <X size={17} /> : <Menu size={17} />}
         </button>
       </div>
 
+      {/* Mobile dropdown */}
       {open && (
-        <div className="border-t border-[var(--color-border)] md:hidden">
-          <div className="flex flex-col px-4 py-1.5">
+        <div className="border-t border-[var(--color-border)] md:hidden bg-[var(--color-surface)]">
+          <div className="flex flex-col px-4 py-2 gap-0.5">
             {!isAuthenticated && (
               <>
-                <Link href="/login" className="px-2 py-1.5 text-sm">
+                <Link
+                  href="/login"
+                  className="px-3 py-2 text-sm font-medium text-[var(--color-ink)] rounded-lg hover:bg-[var(--color-surface-2)] transition-colors"
+                  onClick={() => setOpen(false)}
+                >
                   Sign in
                 </Link>
-                <Link href="/register" className="px-2 py-1.5 text-sm">
+                <Link
+                  href="/register"
+                  className="px-3 py-2 text-sm font-medium text-[var(--color-ink)] rounded-lg hover:bg-[var(--color-surface-2)] transition-colors"
+                  onClick={() => setOpen(false)}
+                >
                   Get started
                 </Link>
               </>
             )}
             {isAuthenticated && (
               <>
-                <Link href={homeHref} className="px-2 py-1.5 text-sm">
+                <Link
+                  href={homeHref}
+                  className="px-3 py-2 text-sm font-medium text-[var(--color-ink)] rounded-lg hover:bg-[var(--color-surface-2)] transition-colors"
+                  onClick={() => setOpen(false)}
+                >
                   Dashboard
                 </Link>
                 <button
-                  onClick={logout}
-                  className="px-2 py-1.5 text-left text-sm"
+                  onClick={() => {
+                    logout();
+                    setOpen(false);
+                  }}
+                  className="px-3 py-2 text-left text-sm font-medium text-[var(--color-muted)] rounded-lg hover:bg-[var(--color-surface-2)] transition-colors"
                 >
                   Log out
                 </button>

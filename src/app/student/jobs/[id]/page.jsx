@@ -11,8 +11,7 @@ import { ReportModal } from "@/components/jobs/ReportModal";
 import { LoadingState } from "@/components/states/LoadingState";
 import { ErrorState } from "@/components/states/ErrorState";
 import { ApiError } from "@/lib/api";
-import { Button } from "@/components/ui/Button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Bookmark, Flag, CheckCircle2 } from "lucide-react";
 
 export default function JobDetailPage() {
   const params = useParams();
@@ -105,25 +104,114 @@ export default function JobDetailPage() {
   if (error) return <ErrorState message={error} onRetry={load} />;
 
   return (
-    <div className="flex flex-col gap-4">
-      <Button variant="ghost" onClick={() => router.back()}>
-        <ArrowLeft size={16} /> Back
-      </Button>
-      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)]">
-        <JobDetail
-          job={job}
-          onApply={() => setApplyOpen(true)}
-          onSave={toggleSave}
-          onReport={() => setReportOpen(true)}
-          saved={saved}
-          applied={applied}
-          disabled={actionLoading}
-        />
+    <div className="w-full min-h-full flex flex-col bg-[var(--color-surface)]">
+      {/* Top Header Bar — Back button strictly on the LEFT */}
+      <div className="sticky top-0 z-20 flex items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 px-4 py-3 backdrop-blur-md sm:px-6">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="inline-flex items-center gap-2 rounded-lg py-1 pr-3 text-sm font-bold text-[var(--color-ink)] hover:text-[var(--color-accent)] transition-colors text-left"
+        >
+          <ArrowLeft size={18} />
+          <span>Back to jobs</span>
+        </button>
+
+        <div className="flex items-center gap-1.5 sm:hidden">
+          <button
+            type="button"
+            onClick={toggleSave}
+            aria-label={saved ? "Remove from saved" : "Save job"}
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-muted)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-ink)] transition-colors"
+          >
+            <Bookmark
+              size={18}
+              className={
+                saved
+                  ? "fill-[var(--color-accent)] text-[var(--color-accent)]"
+                  : ""
+              }
+            />
+          </button>
+          <button
+            type="button"
+            onClick={() => setReportOpen(true)}
+            aria-label="Report job"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--color-muted)] hover:bg-red-50 hover:text-red-600 transition-colors"
+          >
+            <Flag size={17} />
+          </button>
+        </div>
       </div>
-      <ApplyModal open={applyOpen} onClose={() => setApplyOpen(false)} onSubmit={handleApply} loading={actionLoading} />
-      <ReportModal open={reportOpen} onClose={() => setReportOpen(false)} onSubmit={handleReport} loading={actionLoading} />
+
+      {/* Job Details — natural scrolling, generous spacing, ample bottom clearance */}
+      <div className="flex-1 px-4 py-6 sm:px-8 sm:py-8 pb-44 lg:pb-12">
+        <div className="max-w-3xl mx-auto">
+          <JobDetail job={job} fullPage hideActions />
+        </div>
+      </div>
+
+      {/* Permanently Fixed Apply Bar on Mobile (Anchored above BottomNav) / Footer Bar on Desktop */}
+      <div className="fixed bottom-[56px] left-0 right-0 z-30 border-t-2 border-[var(--color-ink)] bg-[var(--color-surface)] px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] lg:static lg:bottom-auto lg:border-t lg:bg-[var(--color-surface)] lg:p-4">
+        <div className="flex items-center gap-2.5 max-w-3xl mx-auto">
+          {applied ? (
+            <div className="flex flex-1 items-center justify-center gap-2 rounded-[4px] border border-emerald-200 bg-emerald-50/90 py-2.5 text-xs sm:text-sm font-semibold text-emerald-800">
+              <CheckCircle2 size={16} />
+              <span>Application Submitted</span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setApplyOpen(true)}
+              disabled={actionLoading || job?.status === "CLOSED"}
+              className="flex-1 inline-flex items-center justify-center gap-2 rounded-[4px] bg-[var(--color-apply)] py-2.5 text-sm font-bold text-white transition-colors duration-150 hover:bg-[var(--color-apply-hover)] disabled:opacity-50 disabled:pointer-events-none"
+            >
+              {job?.status === "CLOSED" ? "Applications Closed" : "Apply now"}
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={toggleSave}
+            title={saved ? "Remove from saved" : "Save job"}
+            className="inline-flex items-center justify-center gap-1.5 rounded-[4px] border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3.5 py-2.5 text-sm font-semibold text-[var(--color-ink)] hover:bg-[var(--color-surface-2)] transition-colors"
+          >
+            <Bookmark
+              size={16}
+              className={
+                saved
+                  ? "fill-[var(--color-accent)] text-[var(--color-accent)]"
+                  : "text-[var(--color-muted)]"
+              }
+            />
+            <span className="hidden sm:inline">{saved ? "Saved" : "Save"}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setReportOpen(true)}
+            title="Report this job posting"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] border border-[var(--color-border)] text-[var(--color-muted)] hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition-colors"
+          >
+            <Flag size={16} />
+          </button>
+        </div>
+      </div>
+
+      <ApplyModal
+        open={applyOpen}
+        onClose={() => setApplyOpen(false)}
+        onSubmit={handleApply}
+        loading={actionLoading}
+      />
+      <ReportModal
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        onSubmit={handleReport}
+        loading={actionLoading}
+      />
+
       {toast && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 rounded-lg bg-[var(--color-ink)] px-3 py-2 text-sm text-white">
+        <div className="fixed bottom-36 lg:bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-xl border-2 border-[var(--color-ink)] bg-[var(--color-ink)] px-4 py-2.5 text-sm font-medium text-[var(--color-surface)] shadow-[var(--shadow)]">
           {toast}
         </div>
       )}

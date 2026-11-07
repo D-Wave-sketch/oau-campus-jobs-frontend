@@ -1,7 +1,7 @@
 "use client";
 
 // ============================================================================
-// SECTION: REGISTER PAGE (TRUE 2-COLUMN FULL-BLEED: FORM LEFT, IMAGE RIGHT)
+// SECTION: REGISTER PAGE — CLEAN 2-COLUMN SPLIT
 // ============================================================================
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -12,6 +12,14 @@ import { redirectByRole } from "@/lib/redirectByRole";
 import { ApiError } from "@/lib/api";
 import { AuthShowcaseCard } from "@/components/auth/AuthShowcaseCard";
 import { AuthSocialButtons } from "@/components/auth/AuthSocialButtons";
+
+// Shared input class helper
+const inputCls = (hasError) =>
+  `w-full rounded-lg border px-3.5 py-2.5 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-subtle)] bg-white transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-[var(--color-ink)] focus:ring-offset-1 ${
+    hasError
+      ? "border-red-400 bg-red-50/30"
+      : "border-[var(--color-border-strong)] hover:border-[var(--color-ink)]/30"
+  }`;
 
 function RegisterContent() {
   const router = useRouter();
@@ -120,8 +128,8 @@ function RegisterContent() {
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen bg-[#110f1a] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-400" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-[var(--color-muted)]" />
       </div>
     );
   }
@@ -129,27 +137,29 @@ function RegisterContent() {
   // Employer verification pending state
   if (employerDone) {
     return (
-      <div className="min-h-screen w-full bg-[#110f1a] text-slate-100 grid lg:grid-cols-2">
-        <div className="flex min-h-screen flex-col justify-center px-6 py-12 sm:px-12 md:px-16 xl:px-24">
-          <div className="w-full max-w-md mx-auto">
-            <div className="rounded-2xl border border-purple-500/30 bg-[#19152b] p-8 shadow-2xl">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-500/20 text-purple-400 mb-5">
-                <CheckCircle2 size={28} />
+      <div className="min-h-screen w-full bg-white grid lg:grid-cols-2">
+        <div className="flex min-h-screen flex-col justify-center px-6 py-12 sm:px-10 md:px-16 xl:px-20">
+          <div className="w-full max-w-sm mx-auto">
+            <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-2)] p-8">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--color-border-strong)] bg-white text-[var(--color-ink)] mb-5">
+                <CheckCircle2 size={22} />
               </div>
-              <h1 className="text-2xl font-bold text-white">Employer Account Created</h1>
-              <p className="mt-3 text-sm text-[#9f97bf] leading-relaxed">
-                Your employer profile has been submitted and is currently pending campus verification. An admin will verify your department or business before job postings go live.
+              <h1 className="text-xl font-bold text-[var(--color-ink)] font-[family-name:var(--font-poppins)]">
+                Employer account created
+              </h1>
+              <p className="mt-3 text-sm text-[var(--color-muted)] leading-relaxed">
+                Your employer profile has been submitted and is pending campus verification. An admin will review your department or business before job postings go live.
               </p>
-              <div className="mt-6 flex flex-col sm:flex-row gap-3">
+              <div className="mt-6 flex flex-col sm:flex-row gap-2.5">
                 <button
                   onClick={() => router.push("/employer")}
-                  className="flex-1 rounded-xl bg-[#7048e8] py-2.5 text-center text-sm font-semibold text-white hover:bg-[#6238df] transition-colors"
+                  className="flex-1 rounded-lg bg-[var(--color-ink)] py-2.5 text-center text-sm font-semibold text-white hover:bg-[var(--color-ink-2)] transition-colors font-[family-name:var(--font-poppins)]"
                 >
                   Go to dashboard
                 </button>
                 <button
                   onClick={() => router.push("/")}
-                  className="flex-1 rounded-xl border border-[#352e4d] bg-[#1d1830] py-2.5 text-center text-sm font-medium text-slate-300 hover:bg-[#25203d] hover:text-white transition-colors"
+                  className="flex-1 rounded-lg border border-[var(--color-border-strong)] bg-white py-2.5 text-center text-sm font-medium text-[var(--color-ink)] hover:bg-[var(--color-surface-2)] transition-colors"
                 >
                   Return home
                 </button>
@@ -165,234 +175,233 @@ function RegisterContent() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#110f1a] text-slate-100 grid lg:grid-cols-2">
-      {/* ==================================================================== */}
-      {/* COLUMN 1: FORM (LEFT) */}
-      {/* ==================================================================== */}
-      <div className="flex min-h-screen flex-col justify-center px-6 py-12 sm:px-12 md:px-16 xl:px-24">
-        <div className="w-full max-w-md mx-auto">
-          {/* Mobile Back Link */}
-          <div className="mb-6 lg:hidden">
+    <div className="min-h-screen w-full bg-white grid lg:grid-cols-2">
+      {/* ================================================================ */}
+      {/* COLUMN 1: FORM */}
+      {/* ================================================================ */}
+      <div className="flex min-h-screen flex-col justify-center px-6 py-12 sm:px-10 md:px-16 xl:px-20">
+        <div className="w-full max-w-sm mx-auto">
+
+          {/* Mobile back */}
+          <div className="mb-8 lg:hidden">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 text-xs text-purple-200/70 hover:text-white transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs text-[var(--color-muted)] hover:text-[var(--color-ink)] transition-colors"
             >
-              <ArrowLeft size={14} />
-              <span>Back to website</span>
+              <ArrowLeft size={13} />
+              <span>Back</span>
             </Link>
           </div>
 
-          {/* Form Header */}
-          <div className="mb-6">
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
+          {/* Header */}
+          <div className="mb-7">
+            <div className="mb-1.5 flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--color-ink)] text-white text-[9px] font-bold tracking-tight font-[family-name:var(--font-poppins)]">
+                OAU
+              </div>
+              <span className="text-sm font-semibold text-[var(--color-ink)] font-[family-name:var(--font-poppins)]">Campus Jobs</span>
+            </div>
+            <h1 className="mt-6 text-2xl font-bold tracking-tight text-[var(--color-ink)] font-[family-name:var(--font-poppins)]">
               Create an account
             </h1>
-            <p className="mt-2 text-sm text-[#8c84a8]">
+            <p className="mt-1.5 text-sm text-[var(--color-muted)]">
               Already have an account?{" "}
               <Link
                 href="/login"
-                className="font-medium text-purple-400 hover:text-purple-300 underline underline-offset-4 transition-colors"
+                className="font-semibold text-[var(--color-ink)] underline underline-offset-4 hover:opacity-70 transition-opacity"
               >
-                Log in
+                Sign in
               </Link>
             </p>
           </div>
 
-          {/* Role Segmented Switcher */}
-          <div className="mb-5 flex rounded-xl border border-[#2e2844] bg-[#161224] p-1">
+          {/* Role switcher */}
+          <div className="mb-5 flex rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface-2)] p-1">
             <button
               type="button"
+              id="role-student-btn"
               onClick={() => setActiveRole("STUDENT")}
-              className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-xs font-semibold transition-all duration-200 ${
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-md py-2 text-[12px] font-semibold transition-all duration-150 ${
                 activeRole === "STUDENT"
-                  ? "bg-[#7048e8] text-white shadow-md"
-                  : "text-[#877fa6] hover:text-white"
+                  ? "bg-white text-[var(--color-ink)] shadow-[var(--shadow-xs)]"
+                  : "text-[var(--color-muted)] hover:text-[var(--color-ink)]"
               }`}
             >
-              <GraduationCap size={15} />
+              <GraduationCap size={14} />
               <span>Student</span>
             </button>
             <button
               type="button"
+              id="role-employer-btn"
               onClick={() => setActiveRole("EMPLOYER")}
-              className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-xs font-semibold transition-all duration-200 ${
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-md py-2 text-[12px] font-semibold transition-all duration-150 ${
                 activeRole === "EMPLOYER"
-                  ? "bg-[#7048e8] text-white shadow-md"
-                  : "text-[#877fa6] hover:text-white"
+                  ? "bg-white text-[var(--color-ink)] shadow-[var(--shadow-xs)]"
+                  : "text-[var(--color-muted)] hover:text-[var(--color-ink)]"
               }`}
             >
-              <Building2 size={15} />
+              <Building2 size={14} />
               <span>Campus Employer</span>
             </button>
           </div>
 
-          {/* Registration Form */}
+          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-3.5">
-            {/* Student Name: First & Last Name side by side */}
+            {/* Name fields */}
             {activeRole === "STUDENT" ? (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label htmlFor="firstName" className="sr-only">
+                  <label htmlFor="reg-firstName" className="block text-[12px] font-medium text-[var(--color-ink)] mb-1.5">
                     First name
                   </label>
                   <input
-                    id="firstName"
+                    id="reg-firstName"
                     type="text"
                     autoComplete="given-name"
-                    placeholder="First name"
+                    placeholder="Chidi"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className={`w-full rounded-xl border ${
-                      fieldErrors.firstName ? "border-red-500/80" : "border-[#2e2844]"
-                    } bg-[#1a162b] px-4 py-3 text-sm text-white placeholder-[#6f688e] transition-all duration-200 focus:border-[#7048e8] focus:bg-[#201b36] focus:outline-none focus:ring-1 focus:ring-[#7048e8]`}
+                    className={inputCls(fieldErrors.firstName)}
                   />
                   {fieldErrors.firstName && (
-                    <p className="mt-1 text-[11px] text-red-400">{fieldErrors.firstName}</p>
+                    <p className="mt-1 text-[11px] text-red-500">{fieldErrors.firstName}</p>
                   )}
                 </div>
-
                 <div>
-                  <label htmlFor="lastName" className="sr-only">
+                  <label htmlFor="reg-lastName" className="block text-[12px] font-medium text-[var(--color-ink)] mb-1.5">
                     Last name
                   </label>
                   <input
-                    id="lastName"
+                    id="reg-lastName"
                     type="text"
                     autoComplete="family-name"
-                    placeholder="Last name"
+                    placeholder="Okeke"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className={`w-full rounded-xl border ${
-                      fieldErrors.lastName ? "border-red-500/80" : "border-[#2e2844]"
-                    } bg-[#1a162b] px-4 py-3 text-sm text-white placeholder-[#6f688e] transition-all duration-200 focus:border-[#7048e8] focus:bg-[#201b36] focus:outline-none focus:ring-1 focus:ring-[#7048e8]`}
+                    className={inputCls(fieldErrors.lastName)}
                   />
                   {fieldErrors.lastName && (
-                    <p className="mt-1 text-[11px] text-red-400">{fieldErrors.lastName}</p>
+                    <p className="mt-1 text-[11px] text-red-500">{fieldErrors.lastName}</p>
                   )}
                 </div>
               </div>
             ) : (
               <div>
-                <label htmlFor="orgName" className="sr-only">
+                <label htmlFor="reg-orgName" className="block text-[12px] font-medium text-[var(--color-ink)] mb-1.5">
                   Organization / Contact name
                 </label>
                 <input
-                  id="orgName"
+                  id="reg-orgName"
                   type="text"
-                  placeholder="Organization or Contact name"
+                  placeholder="Dept. of Computer Science"
                   value={orgName}
                   onChange={(e) => setOrgName(e.target.value)}
-                  className={`w-full rounded-xl border ${
-                    fieldErrors.orgName ? "border-red-500/80" : "border-[#2e2844]"
-                  } bg-[#1a162b] px-4 py-3 text-sm text-white placeholder-[#6f688e] transition-all duration-200 focus:border-[#7048e8] focus:bg-[#201b36] focus:outline-none focus:ring-1 focus:ring-[#7048e8]`}
+                  className={inputCls(fieldErrors.orgName)}
                 />
                 {fieldErrors.orgName && (
-                  <p className="mt-1 text-xs text-red-400">{fieldErrors.orgName}</p>
+                  <p className="mt-1 text-[11px] text-red-500">{fieldErrors.orgName}</p>
                 )}
               </div>
             )}
 
-            {/* Email Field */}
+            {/* Email */}
             <div>
-              <label htmlFor="email" className="sr-only">
-                Email
+              <label htmlFor="reg-email" className="block text-[12px] font-medium text-[var(--color-ink)] mb-1.5">
+                Email address
               </label>
               <input
-                id="email"
+                id="reg-email"
                 type="email"
                 autoComplete="email"
-                placeholder={activeRole === "STUDENT" ? "Email (e.g. name@student.oauife.edu.ng)" : "Official contact email"}
+                placeholder={activeRole === "STUDENT" ? "you@oauife.edu.ng" : "dept@oauife.edu.ng"}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={`w-full rounded-xl border ${
-                  fieldErrors.email ? "border-red-500/80" : "border-[#2e2844]"
-                } bg-[#1a162b] px-4 py-3 text-sm text-white placeholder-[#6f688e] transition-all duration-200 focus:border-[#7048e8] focus:bg-[#201b36] focus:outline-none focus:ring-1 focus:ring-[#7048e8]`}
+                className={inputCls(fieldErrors.email)}
               />
               {fieldErrors.email && (
-                <p className="mt-1 text-xs text-red-400">{fieldErrors.email}</p>
+                <p className="mt-1 text-[11px] text-red-500">{fieldErrors.email}</p>
               )}
             </div>
 
-            {/* Password Field with Eye Toggle */}
+            {/* Password */}
             <div>
-              <label htmlFor="password" className="sr-only">
+              <label htmlFor="reg-password" className="block text-[12px] font-medium text-[var(--color-ink)] mb-1.5">
                 Password
               </label>
               <div className="relative">
                 <input
-                  id="password"
+                  id="reg-password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
-                  placeholder="Enter your password"
+                  placeholder="At least 8 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`w-full rounded-xl border ${
-                    fieldErrors.password ? "border-red-500/80" : "border-[#2e2844]"
-                  } bg-[#1a162b] px-4 py-3 pr-11 text-sm text-white placeholder-[#6f688e] transition-all duration-200 focus:border-[#7048e8] focus:bg-[#201b36] focus:outline-none focus:ring-1 focus:ring-[#7048e8]`}
+                  className={inputCls(fieldErrors.password) + " pr-10"}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[#787196] hover:text-purple-300 transition-colors focus:outline-none"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-subtle)] hover:text-[var(--color-ink)] transition-colors focus:outline-none"
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
               {fieldErrors.password && (
-                <p className="mt-1 text-xs text-red-400">{fieldErrors.password}</p>
+                <p className="mt-1 text-[11px] text-red-500">{fieldErrors.password}</p>
               )}
             </div>
 
-            {/* Terms & Conditions Checkbox */}
-            <div className="pt-1">
-              <label className="flex items-start gap-2.5 cursor-pointer select-none">
+            {/* Terms */}
+            <div>
+              <label className="flex items-start gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={agreedToTerms}
                   onChange={(e) => setAgreedToTerms(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-[#383154] bg-[#1a162b] text-[#7048e8] focus:ring-purple-500 focus:ring-offset-0 focus:ring-offset-[#110f1a] accent-[#7048e8]"
+                  className="mt-0.5 h-3.5 w-3.5 rounded border-[var(--color-border-strong)] accent-[var(--color-ink)]"
                 />
-                <span className="text-xs text-[#9d95ba] leading-normal">
+                <span className="text-[12px] text-[var(--color-muted)] leading-normal">
                   I agree to the{" "}
                   <button
                     type="button"
                     onClick={() => setShowTermsModal(true)}
-                    className="text-purple-400 hover:text-purple-300 underline underline-offset-2 transition-colors inline-block"
+                    className="font-semibold text-[var(--color-ink)] underline underline-offset-2 hover:opacity-70 transition-opacity"
                   >
-                    Terms &amp; Conditions
+                    Terms & Conditions
                   </button>
                 </span>
               </label>
               {fieldErrors.terms && (
-                <p className="mt-1 text-xs text-red-400">{fieldErrors.terms}</p>
+                <p className="mt-1 text-[11px] text-red-500">{fieldErrors.terms}</p>
               )}
             </div>
 
-            {/* Error Message */}
+            {/* Error */}
             {error && (
-              <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-[12px] text-red-700">
                 {error}
               </div>
             )}
 
-            {/* Wake Up Notice */}
+            {/* Wake notice */}
             {wake && (
-              <div className="rounded-xl border border-purple-500/30 bg-purple-500/10 p-3 text-xs text-purple-200">
-                Waking up the server, this can take up to a minute...
+              <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3 text-[12px] text-[var(--color-muted)]">
+                Waking up the server — this may take up to a minute.
               </div>
             )}
 
-            {/* Submit Button */}
+            {/* Submit */}
             <button
               type="submit"
+              id="register-submit-btn"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#7048e8] py-3 text-sm font-semibold text-white shadow-[0_4px_24px_rgba(112,72,232,0.4)] transition-all duration-200 hover:bg-[#6238df] hover:shadow-[0_6px_28px_rgba(112,72,232,0.55)] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 rounded-lg bg-[var(--color-ink)] py-2.5 text-sm font-semibold text-white transition-all duration-150 hover:bg-[var(--color-ink-2)] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed font-[family-name:var(--font-poppins)]"
             >
               {loading ? (
                 <>
-                  <Loader2 size={16} className="animate-spin" />
-                  <span>Creating account...</span>
+                  <Loader2 size={15} className="animate-spin" />
+                  <span>Creating account…</span>
                 </>
               ) : (
                 <span>Create account</span>
@@ -400,63 +409,70 @@ function RegisterContent() {
             </button>
           </form>
 
-          {/* Social Divider */}
+          {/* Social divider */}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#26203a]" />
+              <div className="w-full border-t border-[var(--color-border)]" />
             </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-[#110f1a] px-3 text-[#787196]">Or register with</span>
+            <div className="relative flex justify-center">
+              <span className="bg-white px-3 text-[11px] text-[var(--color-subtle)]">or register with</span>
             </div>
           </div>
 
-          {/* Social Logins */}
           <AuthSocialButtons mode="register" />
         </div>
       </div>
 
-      {/* ==================================================================== */}
-      {/* COLUMN 2: FILLED IMAGE SHOWCASE (RIGHT - FULL BLEED) */}
-      {/* ==================================================================== */}
+      {/* ================================================================ */}
+      {/* COLUMN 2: SHOWCASE IMAGE */}
+      {/* ================================================================ */}
       <div className="relative hidden lg:block h-full min-h-screen w-full">
         <AuthShowcaseCard />
       </div>
 
       {/* Terms & Conditions Modal */}
       {showTermsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-2xl border border-[#352d50] bg-[#181427] p-6 text-slate-200 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#2b2444] pb-3">
-              <h3 className="text-base font-bold text-white">Terms &amp; Conditions</h3>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+          onClick={() => setShowTermsModal(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border border-[var(--color-border)] bg-white p-6 shadow-[var(--shadow-lg)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-[var(--color-border)] pb-3">
+              <h3 className="text-sm font-bold text-[var(--color-ink)] font-[family-name:var(--font-poppins)]">
+                Terms & Conditions
+              </h3>
               <button
                 type="button"
                 onClick={() => setShowTermsModal(false)}
-                className="rounded-lg p-1 text-[#877fa6] hover:bg-[#251f38] hover:text-white"
+                className="rounded-lg p-1.5 text-[var(--color-muted)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-ink)] transition-colors"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
-            <div className="mt-4 max-h-72 overflow-y-auto space-y-3 pr-2 text-xs text-[#a29bbb] leading-relaxed">
+            <div className="mt-4 max-h-64 overflow-y-auto space-y-3 pr-1 text-[12px] text-[var(--color-muted)] leading-relaxed custom-scrollbar">
               <p>
-                <strong>1. Eligibility:</strong> Students must be currently enrolled at Obafemi Awolowo University, Ile-Ife. Campus employers must represent verified academic departments, faculty units, or approved campus enterprises.
+                <strong className="text-[var(--color-ink)]">1. Eligibility:</strong> Students must be currently enrolled at Obafemi Awolowo University, Ile-Ife. Campus employers must represent verified academic departments, faculty units, or approved campus enterprises.
               </p>
               <p>
-                <strong>2. Fair Compensation:</strong> All campus roles posted must honor established university wage agreements, provide respectful working conditions, and not interfere with academic schedules.
+                <strong className="text-[var(--color-ink)]">2. Fair Compensation:</strong> All campus roles posted must honor established university wage agreements, provide respectful working conditions, and not interfere with academic schedules.
               </p>
               <p>
-                <strong>3. Privacy &amp; Data:</strong> Personal information is handled securely and used exclusively to facilitate campus job placement and university administration.
+                <strong className="text-[var(--color-ink)]">3. Privacy & Data:</strong> Personal information is handled securely and used exclusively to facilitate campus job placement and university administration.
               </p>
             </div>
-            <div className="mt-6 flex justify-end">
+            <div className="mt-5 flex justify-end">
               <button
                 type="button"
                 onClick={() => {
                   setAgreedToTerms(true);
                   setShowTermsModal(false);
                 }}
-                className="rounded-xl bg-[#7048e8] px-4 py-2 text-xs font-semibold text-white hover:bg-[#6238df]"
+                className="rounded-lg bg-[var(--color-ink)] px-4 py-2 text-[12px] font-semibold text-white hover:bg-[var(--color-ink-2)] transition-colors font-[family-name:var(--font-poppins)]"
               >
-                I Understand &amp; Agree
+                I understand & agree
               </button>
             </div>
           </div>
@@ -470,8 +486,8 @@ export default function RegisterPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#110f1a] flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-purple-400" />
+        <div className="min-h-screen bg-white flex items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-[var(--color-muted)]" />
         </div>
       }
     >

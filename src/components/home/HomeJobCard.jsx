@@ -1,18 +1,10 @@
 "use client";
 // ============================================================================
-// SECTION: IMPORTS
-// ============================================================================
-import { MapPin, Clock } from "lucide-react";
-import {
-  getEmployerName,
-  isJobOpen,
-  deadlineLabel,
-} from "@/lib/jobFormat";
-
-// ============================================================================
 // SECTION: HOME JOB CARD (left feed item)
-// One real <button> so it is keyboard accessible. No nested interactive items.
 // ============================================================================
+import { MapPin } from "lucide-react";
+import { getEmployerName, isJobOpen, deadlineLabel } from "@/lib/jobFormat";
+
 export function HomeJobCard({ job, selected, onSelect }) {
   const employer = getEmployerName(job);
   const open = isJobOpen(job);
@@ -24,56 +16,33 @@ export function HomeJobCard({ job, selected, onSelect }) {
       onClick={() => onSelect(job.id)}
       aria-pressed={selected}
       className={[
-        "w-full rounded-[var(--radius-lg)] border bg-[var(--color-surface)] p-4 text-left",
-        "transition-colors focus-visible:outline-2 focus-visible:outline-offset-2",
-        "focus-visible:outline-[var(--color-accent)]",
+        "grid w-full grid-cols-2 items-center gap-x-3 gap-y-1.5 border-l-2 px-3 py-2.5 text-left transition-colors duration-100 sm:grid-cols-[minmax(76px,0.65fr)_minmax(92px,0.75fr)_minmax(110px,0.85fr)_minmax(140px,1.45fr)]",
+        "focus-visible:outline-2 focus-visible:outline-offset-2",
+        "focus-visible:outline-[var(--color-ink)]",
         selected
-          ? "border-[var(--color-accent)] ring-1 ring-[var(--color-accent)]"
-          : "border-[var(--color-border)] hover:border-[var(--color-border-strong)]",
+          ? "border-l-[var(--color-brand)] bg-[#E7EFE9]"
+          : "border-l-transparent hover:border-l-[var(--color-brand)] hover:bg-[var(--color-surface-2)]",
       ].join(" ")}
     >
-      {/* Title */}
-      <h3 className="text-[15px] font-semibold leading-snug text-[var(--color-ink)]">
-        {job.title}
-      </h3>
-
-      {/* Employer + location */}
-      <div className="mt-1 space-y-0.5 text-sm text-[var(--color-muted)]">
-        {employer && <p className="truncate">{employer}</p>}
-        {job.location && (
-          <p className="flex items-center gap-1 truncate">
-            <MapPin size={13} className="shrink-0" />
-            {job.location}
-          </p>
-        )}
-      </div>
-
-      {/* Chips */}
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        {job.compensation && (
-          <span className="rounded-md bg-[var(--color-accent-glow)] px-2 py-1 text-xs font-semibold text-[var(--color-accent)]">
-            {job.compensation}
-          </span>
-        )}
-        {job.category && (
-          <span className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-1 text-xs text-[var(--color-muted)]">
-            {job.category}
-          </span>
-        )}
-        {!open && (
-          <span className="rounded-md bg-[var(--color-surface-3)] px-2 py-1 text-xs font-medium text-[var(--color-muted)]">
-            Closed
-          </span>
-        )}
-      </div>
-
-      {/* Deadline (real data only) */}
-      {open && closes && (
-        <p className="mt-3 flex items-center gap-1 text-xs text-[var(--color-subtle)]">
-          <Clock size={12} />
-          {closes}
-        </p>
-      )}
+      <span className="min-w-0 font-mono text-[11px] font-semibold leading-tight text-[var(--color-brand)]">
+        {job.compensation || "Unpaid"}
+      </span>
+      <span className="min-w-0 truncate font-mono text-[10px] leading-tight text-[var(--color-muted)]">
+        {open ? closes || "Open until filled" : "Closed"}
+      </span>
+      <span className="col-span-2 flex min-w-0 items-center gap-1 truncate text-[11px] text-[var(--color-muted)] sm:col-span-1">
+        <MapPin size={11} className="shrink-0" />
+        {job.location || "OAU campus"}
+      </span>
+      <span className="col-span-2 min-w-0 sm:col-span-1">
+        <span className="block truncate text-[13px] font-bold leading-tight text-[var(--color-ink)]">
+          {job.title}
+        </span>
+        <span className="mt-0.5 block truncate text-[10px] text-[var(--color-muted)]">
+          {[employer, job.category].filter(Boolean).join(" / ") ||
+            "Campus opportunity"}
+        </span>
+      </span>
     </button>
   );
 }

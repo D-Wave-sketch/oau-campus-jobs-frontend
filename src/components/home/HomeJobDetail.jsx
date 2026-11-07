@@ -4,7 +4,14 @@
 // SECTION: IMPORTS
 // ============================================================================
 import Link from "next/link";
-import { Banknote, CalendarClock, MapPin, Tag, Building2, Briefcase } from "lucide-react";
+import {
+  Banknote,
+  CalendarClock,
+  MapPin,
+  Tag,
+  Building2,
+  Briefcase,
+} from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import {
   getEmployerName,
@@ -30,12 +37,12 @@ export function HomeJobDetail({ job, showStickyCta = false }) {
   const applyButton = open ? (
     <Link
       href={applyHref}
-      className="inline-flex h-11 items-center justify-center rounded-xl bg-[var(--color-apply)] px-6 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[var(--color-apply-hover)] active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-apply)]"
+      className="inline-flex h-10 items-center justify-center rounded-[4px] bg-[var(--color-apply)] px-5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[var(--color-apply-hover)] active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-apply)]"
     >
       Apply now
     </Link>
   ) : (
-    <span className="inline-flex h-11 items-center justify-center rounded-xl bg-[var(--color-surface-2)] border border-[var(--color-border)] px-6 text-sm font-semibold text-[var(--color-muted)]">
+    <span className="inline-flex h-10 items-center justify-center rounded-[4px] bg-[var(--color-surface-2)] border border-[var(--color-border)] px-5 text-sm font-semibold text-[var(--color-muted)]">
       Applications closed
     </span>
   );
@@ -58,18 +65,18 @@ export function HomeJobDetail({ job, showStickyCta = false }) {
   ].filter((f) => f.value);
 
   return (
-    <article className="h-full overflow-y-auto">
-      <div className="mx-auto max-w-xl p-5 sm:p-7 space-y-6">
+    <article className="h-full overflow-hidden">
+      <div className="flex h-full flex-col gap-3 p-4 sm:p-5">
         {/* Header */}
-        <header className="space-y-3 pb-4 border-b border-[var(--color-border)]">
+        <header className="shrink-0 space-y-2 border-b border-[var(--color-border)] pb-3">
           <div className="flex items-center justify-between gap-2">
             {open ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 border border-[#B8CDBE] bg-[#E7EFE9] px-2 py-1 text-[11px] font-semibold text-[var(--color-brand)]">
+                <span className="h-1.5 w-1.5 bg-[var(--color-brand)]" />
                 Active Opening
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1 text-xs font-medium text-[var(--color-muted)]">
+              <span className="inline-flex items-center gap-1.5 border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-1 text-xs font-medium text-[var(--color-muted)]">
                 <span className="h-1.5 w-1.5 rounded-full bg-gray-400" />
                 Applications Closed
               </span>
@@ -83,28 +90,40 @@ export function HomeJobDetail({ job, showStickyCta = false }) {
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold leading-tight text-[var(--color-ink)]">
+            <h2 className="line-clamp-2 text-xl font-bold leading-tight text-[var(--color-ink)] sm:text-2xl">
               {job.title}
             </h2>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[var(--color-muted)]">
               {employer && (
                 <span className="flex items-center gap-1.5 font-medium text-[var(--color-ink)]">
-                  <Building2 size={14} className="text-[var(--color-accent)] shrink-0" />
+                  <Building2
+                    size={14}
+                    className="text-[var(--color-accent)] shrink-0"
+                  />
                   {employer}
                 </span>
               )}
               {employer && job.location && <span>•</span>}
               {job.location && (
                 <span className="flex items-center gap-1">
-                  <MapPin size={13} className="text-[var(--color-subtle)] shrink-0" />
+                  <MapPin
+                    size={13}
+                    className="text-[var(--color-subtle)] shrink-0"
+                  />
                   {job.location}
                 </span>
               )}
             </div>
           </div>
 
-          <div className="pt-2 flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             {applyButton}
+            <Link
+              href={applyHref}
+              className="text-xs font-semibold text-[var(--color-brand)] underline underline-offset-2 hover:text-[var(--color-brand-2)]"
+            >
+              Full listing
+            </Link>
             {!isStudent && open && (
               <p className="text-xs text-[var(--color-subtle)]">
                 Sign in with your student account to apply.
@@ -115,20 +134,27 @@ export function HomeJobDetail({ job, showStickyCta = false }) {
 
         {/* Job facts chips */}
         {facts.length > 0 && (
-          <section className="space-y-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--color-subtle)]">
+          <section className="shrink-0">
+            <h3 className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--color-subtle)]">
               Key Information
             </h3>
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-2 gap-0 border-y border-[var(--color-border)]">
               {facts.map(({ icon: Icon, label, value }) => (
                 <div
                   key={label}
-                  className="flex items-center gap-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)]/60 p-3"
+                  className="flex min-w-0 items-center gap-2 border-b border-r border-[var(--color-border)] p-2"
                 >
-                  <Icon size={16} className="text-[var(--color-accent)] shrink-0" />
+                  <Icon
+                    size={14}
+                    className="text-[var(--color-accent)] shrink-0"
+                  />
                   <div className="min-w-0">
-                    <p className="text-[11px] text-[var(--color-subtle)] truncate">{label}</p>
-                    <p className="text-xs font-semibold text-[var(--color-ink)] truncate">{value}</p>
+                    <p className="text-[11px] text-[var(--color-subtle)] truncate">
+                      {label}
+                    </p>
+                    <p className="text-xs font-semibold text-[var(--color-ink)] truncate">
+                      {value}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -137,22 +163,24 @@ export function HomeJobDetail({ job, showStickyCta = false }) {
         )}
 
         {/* Description */}
-        <section className="space-y-2">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--color-subtle)]">
+        <section className="min-h-0 flex-1 overflow-hidden">
+          <h3 className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--color-subtle)]">
             Full job description
           </h3>
-          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-2)]/40 p-4 sm:p-5 text-sm leading-relaxed text-[var(--color-ink)] whitespace-pre-line">
+          <div className="line-clamp-5 border-l-2 border-[var(--color-border-strong)] bg-[var(--color-surface-2)] p-3 text-sm leading-relaxed text-[var(--color-ink)] whitespace-pre-line">
             {job.description || "No description provided."}
           </div>
         </section>
 
         {/* Footer info */}
-        <div className="rounded-xl border border-[var(--color-border)]/50 bg-[var(--color-surface)] p-3 text-xs text-[var(--color-muted)] flex items-center justify-between">
+        <div className="shrink-0 border-t border-[var(--color-border)] py-2 text-[11px] text-[var(--color-muted)] flex items-center justify-between">
           <span className="flex items-center gap-2">
             <Briefcase size={14} className="text-[var(--color-accent)]" />
             Verified Campus Opportunity
           </span>
-          <span className="font-medium text-[var(--color-ink)]">{employer}</span>
+          <span className="font-medium text-[var(--color-ink)]">
+            {employer}
+          </span>
         </div>
       </div>
 

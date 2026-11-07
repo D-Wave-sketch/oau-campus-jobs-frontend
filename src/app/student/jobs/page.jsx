@@ -2,10 +2,17 @@
 // ============================================================================
 // SECTION: STUDENT - BROWSE JOBS
 // ============================================================================
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { listJobs, getSavedJobs, saveJob, unsaveJob, applyToJob, reportJob, getMyApplications } from "@/lib/endpoints";
-import { useAuth } from "@/context/AuthContext";
+import {
+  listJobs,
+  getSavedJobs,
+  saveJob,
+  unsaveJob,
+  applyToJob,
+  reportJob,
+  getMyApplications,
+} from "@/lib/endpoints";
 import { JobCard } from "@/components/jobs/JobCard";
 import { JobDetail } from "@/components/jobs/JobDetail";
 import { JobFilters } from "@/components/jobs/JobFilters";
@@ -15,19 +22,36 @@ import { SkeletonCard } from "@/components/states/LoadingState";
 import { EmptyState } from "@/components/states/EmptyState";
 import { ErrorState } from "@/components/states/ErrorState";
 import { ApiError } from "@/lib/api";
-import { Briefcase } from "lucide-react";
+import {
+  Briefcase,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  Bookmark,
+  Flag,
+  CheckCircle2,
+} from "lucide-react";
+
+const PAGE_SIZE = 10;
 
 export default function StudentJobsPage() {
   const router = useRouter();
   const params = useSearchParams();
-  const { profile } = useAuth();
   const [jobs, setJobs] = useState([]);
-  const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: PAGE_SIZE,
+    total: 0,
+    totalPages: 1,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [wake, setWake] = useState(false);
-  const [selectedId, setSelectedId] = useState(params.get("job") ? Number(params.get("job")) : null);
+  const [selectedId, setSelectedId] = useState(
+    params.get("job") ? Number(params.get("job")) : null,
+  );
   const [search, setSearch] = useState(params.get("search") || "");
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [category, setCategory] = useState(params.get("category") || "");
   const [location, setLocation] = useState(params.get("location") || "");
   const [savedIds, setSavedIds] = useState(new Set());
@@ -36,8 +60,42 @@ export default function StudentJobsPage() {
   const [reportOpen, setReportOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState("");
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
 
-  const cvMissing = !(profile?.cvUrl);
+  const reqId = useRef(0);
+  const toastTimer = useRef(null);
+  const listRef = useRef(null);
+
+  // --------------------------------------------------------------------------
+  // Helpers
+  // --------------------------------------------------------------------------
+  const flash = (message, ms = 2200) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast(message);
+    toastTimer.current = setTimeout(() => setToast(""), ms);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    };
+  }, []);
+
+  // Desktop shows the split detail panel; mobile navigates to the job page.
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const update = () => setIsDesktop(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  // Debounce search so we don't hit the API on every keystroke.
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 350);
+    return () => clearTimeout(t);
+  }, [search]);
 
   const categories = useMemo(() => {
     const set = new Set();
@@ -50,29 +108,50 @@ export default function StudentJobsPage() {
     return Array.from(set);
   }, [jobs]);
 
+  // --------------------------------------------------------------------------
+  // Data
+  // --------------------------------------------------------------------------
   const fetchData = async (page = 1) => {
+    const id = ++reqId.current; // ignore stale responses
     setLoading(true);
     setError("");
     const wakeTimer = setTimeout(() => setWake(true), 4000);
     try {
-      const res = await listJobs({ search: search || undefined, category: category || undefined, location: location || undefined, page, limit: 10 });
+      const res = await listJobs({
+        search: debouncedSearch || undefined,
+        category: category || undefined,
+        location: location || undefined,
+        page,
+        limit: PAGE_SIZE,
+      });
+      if (id !== reqId.current) return;
       setJobs(res?.jobs || res?.data || []);
-      setPagination(res?.pagination || { page, limit: 10, total: 0, totalPages: 1 });
-      clearTimeout(wakeTimer);
-      setWake(false);
+      setPagination(
+        res?.pagination || { page, limit: PAGE_SIZE, total: 0, totalPages: 1 },
+      );
+      listRef.current?.scrollTo({ top: 0 });
     } catch (err) {
-      clearTimeout(wakeTimer);
-      setWake(false);
+      if (id !== reqId.current) return;
       if (err instanceof ApiError) setError(err.message);
       else setError(err.message || "Failed to load jobs");
     } finally {
-      setLoading(false);
+      clearTimeout(wakeTimer);
+      if (id === reqId.current) {
+        setWake(false);
+        setLoading(false);
+      }
     }
   };
 
+  // Jobs: refetch when filters change
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch, category, location]);
+
+  // Saved + applied: fetch once
+  useEffect(() => {
     (async () => {
       try {
         const s = await getSavedJobs();
@@ -94,10 +173,16 @@ export default function StudentJobsPage() {
         setAppliedIds(ids);
       } catch {}
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, category, location]);
+  }, []);
 
-  const selected = useMemo(() => jobs.find((j) => j.id === selectedId) || null, [jobs, selectedId]);
+  // On desktop, show the first job by default so the panel is never empty.
+  const selected = useMemo(
+    () =>
+      jobs.find((j) => j.id === selectedId) ||
+      (isDesktop ? jobs[0] : null) ||
+      null,
+    [jobs, selectedId, isDesktop],
+  );
 
   const updateUrl = (id) => {
     const q = new URLSearchParams(params.toString());
@@ -106,36 +191,47 @@ export default function StudentJobsPage() {
     router.replace(`/student/jobs${q.toString() ? `?${q.toString()}` : ""}`);
   };
 
+  const handleSelect = (job) => {
+    if (!isDesktop) {
+      router.push(`/student/jobs/${job.id}`);
+      return;
+    }
+    setSelectedId(job.id);
+    updateUrl(job.id);
+  };
+
+  // --------------------------------------------------------------------------
+  // Actions
+  // --------------------------------------------------------------------------
   const toggleSave = async (job) => {
     const id = job.id;
     const was = savedIds.has(id);
-    const next = new Set(savedIds);
-    if (was) next.delete(id); else next.add(id);
-    setSavedIds(next);
+    const flip = (set, on) => {
+      const next = new Set(set);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    };
+    setSavedIds((prev) => flip(prev, !was));
     try {
       if (was) await unsaveJob(id);
       else await saveJob(id);
-      setToast(was ? "Removed from saved" : "Saved job");
-      setTimeout(() => setToast(""), 2000);
+      flash(was ? "Removed from saved" : "Saved job");
     } catch (err) {
-      setSavedIds(savedIds);
-      if (err instanceof ApiError) setToast(err.message);
-      else setToast("Failed to update");
-      setTimeout(() => setToast(""), 2500);
+      setSavedIds((prev) => flip(prev, was)); // revert
+      flash(err instanceof ApiError ? err.message : "Failed to update", 2800);
     }
   };
 
+  // Errors are rethrown so the modal can show them.
   const handleApply = async (cover) => {
     if (!selected) return;
     setActionLoading(true);
     try {
       await applyToJob(selected.id, cover);
-      setAppliedIds(new Set([...appliedIds, selected.id]));
+      setAppliedIds((prev) => new Set([...prev, selected.id]));
       setApplyOpen(false);
       router.push("/student/applications");
-    } catch (err) {
-      if (err instanceof ApiError) throw err;
-      throw err;
     } finally {
       setActionLoading(false);
     }
@@ -147,11 +243,7 @@ export default function StudentJobsPage() {
     try {
       await reportJob(selected.id, reason);
       setReportOpen(false);
-      setToast("Report submitted");
-      setTimeout(() => setToast(""), 2000);
-    } catch (err) {
-      if (err instanceof ApiError) throw err;
-      throw err;
+      flash("Report submitted");
     } finally {
       setActionLoading(false);
     }
@@ -159,18 +251,30 @@ export default function StudentJobsPage() {
 
   const clearFilters = () => {
     setSearch("");
+    setDebouncedSearch("");
     setCategory("");
     setLocation("");
     router.replace("/student/jobs");
   };
 
+  // --------------------------------------------------------------------------
+  // Render
+  // --------------------------------------------------------------------------
   return (
-    <div className="flex flex-col gap-3">
-      {cvMissing && (
-        <div className="rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-xs text-amber-800 flex items-center gap-2">
-          <span className="font-semibold">Add your CV</span> in Profile to improve your chances.
-        </div>
-      )}
+    <div className="flex h-full min-h-0 flex-col gap-2 overflow-hidden lg:gap-3">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4 border-b-2 border-[var(--color-ink)] pb-2">
+        <h1 className="text-xl font-extrabold leading-none text-[var(--color-ink)] sm:text-2xl">
+          Browse jobs
+        </h1>
+        {!loading && !error && (
+          <span className="shrink-0 rounded-full bg-[var(--color-ink)] px-3 py-1 text-xs font-bold text-[var(--color-surface)]">
+            {pagination.total || jobs.length}{" "}
+            {(pagination.total || jobs.length) === 1 ? "job" : "jobs"}
+          </span>
+        )}
+      </div>
+
       <JobFilters
         search={search}
         setSearch={setSearch}
@@ -181,71 +285,201 @@ export default function StudentJobsPage() {
         categories={categories}
         locations={locations}
         onClear={clearFilters}
+        drawerOpen={filterDrawerOpen}
+        onOpenDrawer={() => setFilterDrawerOpen(true)}
+        onCloseDrawer={() => setFilterDrawerOpen(false)}
       />
-      {wake && <div className="text-xs text-[var(--color-subtle)]">Waking up the server, this can take up to a minute</div>}
+
+      {wake && (
+        <div
+          role="status"
+          className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs text-[var(--color-muted)]"
+        >
+          <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+          Waking up the server, this can take up to a minute.
+        </div>
+      )}
+
       {loading ? (
-        <div className="grid gap-3 lg:grid-cols-[340px_1fr] h-[600px] items-start">
-          <div className="flex flex-col gap-2">
-            {[1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)}
+        <div
+          className="grid min-h-0 flex-1 gap-4 overflow-hidden lg:grid-cols-[minmax(240px,300px)_minmax(0,1fr)]"
+          aria-busy="true"
+        >
+          <div className="flex flex-col gap-2.5">
+            {[1, 2, 3, 4].map((i) => (
+              <SkeletonCard key={i} />
+            ))}
           </div>
-          <div className="hidden lg:block rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)]">
+          <div className="hidden overflow-hidden rounded-[4px] border border-[var(--color-border)] bg-[var(--color-surface)] lg:block">
             <SkeletonCard />
           </div>
         </div>
       ) : error ? (
-        <ErrorState message={error} onRetry={() => fetchData(pagination.page)} />
+        <ErrorState
+          message={error}
+          onRetry={() => fetchData(pagination.page)}
+        />
       ) : jobs.length === 0 ? (
-        <EmptyState title="No jobs found" description="Try adjusting your filters" actionLabel="Clear filters" onAction={clearFilters} icon={Briefcase} />
+        <EmptyState
+          title="No jobs found"
+          description="Try adjusting your filters."
+          actionLabel="Clear filters"
+          onAction={clearFilters}
+          icon={Briefcase}
+        />
       ) : (
         <>
-          <div className="grid gap-4 lg:grid-cols-[minmax(340px,380px)_1fr] items-start">
-            {/* Left Feed Column - Independent Scroll */}
-            <div className="flex flex-col gap-2.5 lg:h-[calc(100vh-210px)] overflow-y-auto pr-1.5 pb-6 custom-scrollbar">
-              {jobs.map((job) => (
-                <JobCard
-                  key={job.id}
-                  job={job}
-                  selected={selectedId === job.id}
-                  onSelect={() => {
-                    setSelectedId(job.id);
-                    updateUrl(job.id);
-                  }}
-                  saved={savedIds.has(job.id)}
-                  onToggleSave={toggleSave}
-                  applied={appliedIds.has(job.id)}
-                />
-              ))}
-            </div>
+          <div className="grid min-h-0 flex-1 gap-4 overflow-hidden lg:grid-cols-[minmax(240px,300px)_minmax(0,1fr)]">
+            <section
+              aria-label="Job feed"
+              className="flex min-h-0 flex-col overflow-hidden"
+            >
+              <div
+                ref={listRef}
+                className="flex min-h-0 flex-1 flex-col overflow-y-auto custom-scrollbar
+                  divide-y divide-[var(--color-border)] lg:divide-y-0
+                  lg:gap-2.5 lg:pr-1.5 lg:pb-3"
+              >
+                {jobs.map((job) => (
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    selected={isDesktop && selected?.id === job.id}
+                    onSelect={() => handleSelect(job)}
+                    saved={savedIds.has(job.id)}
+                    onToggleSave={toggleSave}
+                    applied={appliedIds.has(job.id)}
+                  />
+                ))}
+              </div>
+            </section>
 
-            {/* Right Detail Preview - Centered & Fitted */}
-            <div className="hidden lg:flex flex-col rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm lg:h-[calc(100vh-210px)] overflow-hidden">
+            {/* Right detail panel */}
+            <div className="hidden min-h-0 overflow-hidden rounded-[4px] border border-[var(--color-border)] bg-[var(--color-surface)] lg:flex lg:flex-col">
               <JobDetail
                 job={selected}
-                onApply={() => setApplyOpen(true)}
-                onSave={() => selected && toggleSave(selected)}
-                onReport={() => setReportOpen(true)}
+                compact
+                hideActions
                 saved={selected ? savedIds.has(selected.id) : false}
                 applied={selected ? appliedIds.has(selected.id) : false}
                 disabled={actionLoading}
               />
             </div>
           </div>
-          <div className="flex items-center justify-between text-xs text-[var(--color-muted)] mt-4">
-            <span>Page {pagination.page} of {pagination.totalPages}</span>
-            <div className="flex gap-2">
-              <button disabled={pagination.page <= 1} onClick={() => fetchData(pagination.page - 1)} className="px-2 py-1 border rounded-md hover:bg-[var(--color-surface-2)] disabled:opacity-50 disabled:pointer-events-none">Previous</button>
-              <button disabled={pagination.page >= pagination.totalPages} onClick={() => fetchData(pagination.page + 1)} className="px-2 py-1 border rounded-md hover:bg-[var(--color-surface-2)] disabled:opacity-50 disabled:pointer-events-none">Next</button>
+
+          {/* ================================================================
+              UNIFIED BOTTOM BAR
+              Aligns visually with the sidebar's account block footer.
+              Left: pagination | Right: Apply now / Save / Report
+              ================================================================ */}
+          <div className="shrink-0 border-t-2 border-[var(--color-ink)] bg-[var(--color-surface)] ">
+            <div className="flex items-center lg:justify-between gap-3 lg:pt-6">
+              {/* Pagination */}
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[11px] font-semibold text-[var(--color-muted)]">
+                  Page {pagination.page} of {pagination.totalPages}
+                </span>
+                <div className="flex gap-1.5">
+                  <button
+                    type="button"
+                    disabled={pagination.page <= 1}
+                    onClick={() => fetchData(pagination.page - 1)}
+                    className="inline-flex h-8 items-center gap-1 rounded-[4px] border border-[var(--color-border-strong)] px-2.5 text-[11px] font-semibold text-[var(--color-ink)] transition-colors hover:bg-[var(--color-surface-2)] disabled:pointer-events-none disabled:opacity-40"
+                  >
+                    <ChevronLeft size={13} aria-hidden="true" />
+                    Previous
+                  </button>
+                  <button
+                    type="button"
+                    disabled={pagination.page >= pagination.totalPages}
+                    onClick={() => fetchData(pagination.page + 1)}
+                    className="inline-flex h-8 items-center gap-1 rounded-[4px] border border-[var(--color-brand)] bg-[var(--color-brand)] px-2.5 text-[11px] font-semibold text-white transition-colors hover:bg-[var(--color-brand-2)] disabled:pointer-events-none disabled:opacity-40"
+                  >
+                    Next
+                    <ChevronRight size={13} aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Apply / Save / Report — shown only on desktop when a job is selected */}
+              {selected && isDesktop && (
+                <div className="flex items-center gap-2">
+                  {selected && appliedIds.has(selected.id) ? (
+                    <div className="flex items-center gap-2 rounded-[4px] border border-emerald-200 bg-emerald-50/90 px-3 py-2 text-xs font-semibold text-emerald-800">
+                      <CheckCircle2 size={14} />
+                      <span>Applied</span>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setApplyOpen(true)}
+                      disabled={
+                        actionLoading || selected?.status === "CLOSED"
+                      }
+                      className="inline-flex h-9 items-center justify-center gap-2 rounded-[4px] bg-[var(--color-apply)] px-5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[var(--color-apply-hover)] disabled:opacity-50 disabled:pointer-events-none"
+                    >
+                      {selected?.status === "CLOSED"
+                        ? "Applications Closed"
+                        : "Apply now"}
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => selected && toggleSave(selected)}
+                    title={
+                      savedIds.has(selected.id)
+                        ? "Remove from saved"
+                        : "Save job"
+                    }
+                    className="inline-flex h-9 items-center justify-center gap-1.5 rounded-[4px] border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 text-xs font-semibold text-[var(--color-ink)] hover:bg-[var(--color-surface-2)] transition-colors"
+                  >
+                    <Bookmark
+                      size={14}
+                      className={
+                        savedIds.has(selected.id)
+                          ? "fill-[var(--color-accent)] text-[var(--color-accent)]"
+                          : "text-[var(--color-muted)]"
+                      }
+                    />
+                    <span>{savedIds.has(selected.id) ? "Saved" : "Save"}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setReportOpen(true)}
+                    title="Report this job posting"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px] border border-[var(--color-border)] text-[var(--color-muted)] hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition-colors"
+                  >
+                    <Flag size={14} />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </>
       )}
-      <ApplyModal open={applyOpen} onClose={() => setApplyOpen(false)} onSubmit={handleApply} loading={actionLoading} />
-      <ReportModal open={reportOpen} onClose={() => setReportOpen(false)} onSubmit={handleReport} loading={actionLoading} />
-      {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm shadow-[var(--shadow)]">
-          {toast}
-        </div>
-      )}
+
+      <ApplyModal
+        open={applyOpen}
+        onClose={() => setApplyOpen(false)}
+        onSubmit={handleApply}
+        loading={actionLoading}
+      />
+      <ReportModal
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        onSubmit={handleReport}
+        loading={actionLoading}
+      />
+
+      <div aria-live="polite" role="status">
+        {toast && (
+          <div className="fixed bottom-20 lg:bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl border-2 border-[var(--color-ink)] bg-[var(--color-ink)] px-4 py-2.5 text-sm font-medium text-[var(--color-surface)] shadow-[var(--shadow)]">
+            {toast}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

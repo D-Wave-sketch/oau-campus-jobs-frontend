@@ -5,7 +5,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, Briefcase, MapPin, RefreshCw, Search } from "lucide-react";
+import {
+  ArrowLeft,
+  Briefcase,
+  MapPin,
+  Radio,
+  RefreshCw,
+  Search,
+} from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { BottomNav } from "@/components/layout/BottomNav";
@@ -13,11 +20,17 @@ import { HomeJobCard } from "@/components/home/HomeJobCard";
 import { HomeJobDetail } from "@/components/home/HomeJobDetail";
 import { useAuth } from "@/context/AuthContext";
 import { listJobs } from "@/lib/endpoints";
+import { isJobOpen } from "@/components/jobs/jobFormat";
 
 // ============================================================================
 // SECTION: CONSTANTS
 // ============================================================================
 const PAGE_SIZE = 12;
+const CAMPUS_SEARCHES = [
+  { query: "4K video club promo", detail: "$100 / club promo shoot" },
+  { query: "React Native debugging", detail: "Before midnight" },
+  { query: "Dorm move-out help", detail: "Truck + hands / Friday" },
+];
 
 // ============================================================================
 // SECTION: SMALL PRESENTATION PIECES
@@ -30,11 +43,11 @@ function FeedSkeleton() {
           key={i}
           className="animate-pulse rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4"
         >
-          <div className="h-4 w-3/4 rounded bg-[var(--color-surface-3)]" />
-          <div className="mt-3 h-3 w-1/2 rounded bg-[var(--color-surface-3)]" />
+          <div className="h-3.5 w-3/4 rounded-md bg-[var(--color-surface-3)]" />
+          <div className="mt-3 h-3 w-1/2 rounded-md bg-[var(--color-surface-3)]" />
           <div className="mt-4 flex gap-2">
-            <div className="h-6 w-20 rounded bg-[var(--color-surface-3)]" />
-            <div className="h-6 w-16 rounded bg-[var(--color-surface-3)]" />
+            <div className="h-5 w-16 rounded-md bg-[var(--color-surface-3)]" />
+            <div className="h-5 w-14 rounded-md bg-[var(--color-surface-3)]" />
           </div>
         </div>
       ))}
@@ -45,8 +58,8 @@ function FeedSkeleton() {
 function DetailPlaceholder() {
   return (
     <div className="flex h-full min-h-[320px] flex-col items-center justify-center gap-3 p-8 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-accent-glow)] text-[var(--color-accent)]">
-        <Briefcase size={20} />
+      <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-muted)]">
+        <Briefcase size={19} />
       </div>
       <p className="text-sm text-[var(--color-muted)]">
         Select a job to see the full details.
@@ -62,16 +75,10 @@ export default function Home() {
   const router = useRouter();
   const { status, role } = useAuth();
 
-  // --------------------------------------------------------------------------
-  // STATE: search inputs (typed) vs applied query (what was submitted)
-  // --------------------------------------------------------------------------
   const [q, setQ] = useState("");
   const [loc, setLoc] = useState("");
   const [applied, setApplied] = useState({ search: "", location: "" });
 
-  // --------------------------------------------------------------------------
-  // STATE: feed data
-  // --------------------------------------------------------------------------
   const [jobs, setJobs] = useState([]);
   const [meta, setMeta] = useState(null);
   const [page, setPage] = useState(1);
@@ -81,28 +88,21 @@ export default function Home() {
   const [error, setError] = useState("");
   const [slow, setSlow] = useState(false);
 
-  // --------------------------------------------------------------------------
-  // STATE: selection (desktop panel) and mobile sheet
-  // --------------------------------------------------------------------------
   const [selectedId, setSelectedId] = useState(null);
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  // --------------------------------------------------------------------------
-  // EFFECT: first-launch onboarding redirect
-  // --------------------------------------------------------------------------
+  // First-launch onboarding redirect
   useEffect(() => {
     try {
       if (localStorage.getItem("oau_campus_jobs_onboarded") !== "true") {
         router.replace("/onboarding");
       }
     } catch {
-      // Storage unavailable: skip onboarding rather than block the page.
+      // Storage unavailable: skip onboarding
     }
   }, [router]);
 
-  // --------------------------------------------------------------------------
-  // EFFECT: signed-in users go to their own dashboard
-  // --------------------------------------------------------------------------
+  // Signed-in users go to their dashboard
   useEffect(() => {
     if (status !== "authenticated") return;
     if (role === "STUDENT") router.replace("/student/jobs");
@@ -110,9 +110,6 @@ export default function Home() {
     else if (role === "ADMIN") router.replace("/admin/users");
   }, [status, role, router]);
 
-  // --------------------------------------------------------------------------
-  // DATA: load a page of jobs (page 1 replaces, later pages append)
-  // --------------------------------------------------------------------------
   const loadJobs = useCallback(async (pageToLoad, query) => {
     const append = pageToLoad > 1;
     if (append) setLoadingMore(true);
@@ -132,14 +129,14 @@ export default function Home() {
       setJobs((prev) =>
         append
           ? [...prev, ...list.filter((n) => !prev.some((p) => p.id === n.id))]
-          : list
+          : list,
       );
       setMeta(m);
       setPage(pageToLoad);
 
       const totalPages = m?.totalPages ?? m?.pages;
       setHasMore(
-        totalPages ? pageToLoad < totalPages : list.length === PAGE_SIZE
+        totalPages ? pageToLoad < totalPages : list.length === PAGE_SIZE,
       );
     } catch (err) {
       setError(err?.message || "Could not load jobs. Please try again.");
@@ -149,14 +146,10 @@ export default function Home() {
     }
   }, []);
 
-  // Reload page 1 whenever the applied query changes
   useEffect(() => {
     loadJobs(1, applied);
   }, [applied, loadJobs]);
 
-  // --------------------------------------------------------------------------
-  // EFFECT: show a "server is waking up" note if the first load is slow
-  // --------------------------------------------------------------------------
   useEffect(() => {
     if (!loading || jobs.length > 0) {
       setSlow(false);
@@ -166,9 +159,6 @@ export default function Home() {
     return () => clearTimeout(t);
   }, [loading, jobs.length]);
 
-  // --------------------------------------------------------------------------
-  // EFFECT: keep a valid selection (auto-select first job on desktop)
-  // --------------------------------------------------------------------------
   useEffect(() => {
     if (jobs.length === 0) {
       setSelectedId(null);
@@ -177,9 +167,6 @@ export default function Home() {
     if (!jobs.some((j) => j.id === selectedId)) setSelectedId(jobs[0].id);
   }, [jobs, selectedId]);
 
-  // --------------------------------------------------------------------------
-  // EFFECT: mobile sheet behaviour (scroll lock + Escape to close)
-  // --------------------------------------------------------------------------
   useEffect(() => {
     if (!sheetOpen) return;
     const prev = document.body.style.overflow;
@@ -192,9 +179,6 @@ export default function Home() {
     };
   }, [sheetOpen]);
 
-  // --------------------------------------------------------------------------
-  // HANDLERS
-  // --------------------------------------------------------------------------
   const submitSearch = (e) => {
     e.preventDefault();
     setApplied({ search: q.trim(), location: loc.trim() });
@@ -208,265 +192,344 @@ export default function Home() {
 
   const selectJob = (id) => {
     setSelectedId(id);
-    setSheetOpen(true); // only visible below the lg breakpoint
+    setSheetOpen(true);
   };
 
-  // --------------------------------------------------------------------------
-  // DERIVED
-  // --------------------------------------------------------------------------
   const selectedJob = jobs.find((j) => j.id === selectedId) || null;
+  const activeJobs = jobs.filter(isJobOpen).slice(0, 3);
   const hasQuery = Boolean(applied.search || applied.location);
   const total = meta?.total ?? meta?.totalItems ?? null;
   const isAnonymous = status !== "authenticated";
 
-  // ==========================================================================
-  // SECTION: RENDER
-  // ==========================================================================
   return (
-    <div className="min-h-screen bg-[var(--color-surface-2)] flex flex-col lg:flex-row lg:h-screen lg:overflow-hidden">
-      {/* Collapsible Sidebar (Guest / User) */}
+    <div className="h-dvh overflow-hidden bg-[var(--color-surface-2)] flex flex-col lg:flex-row">
+      {/* Collapsible Sidebar */}
       <Sidebar role={role} />
 
-      {/* Wrapped Canvas around the page with rounded corners */}
-      <div className="flex-1 flex flex-col min-w-0 lg:my-2.5 lg:mr-2.5 lg:rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm overflow-hidden transition-all duration-300">
+      {/* Main canvas */}
+      <div className="flex-1 flex flex-col min-w-0 border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden transition-all duration-300">
         <Navbar />
 
         <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          {/* ---------------- Search strip ---------------- */}
-          <section className="shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface-2)]">
-          <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6 lg:py-5">
-            <h1 className="text-2xl font-bold tracking-tight text-[var(--color-ink)] sm:text-3xl">
-              Find campus work that fits around your lectures
-            </h1>
+          <section className="shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+            <div className="grid gap-5 px-4 py-4 sm:px-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(260px,0.65fr)] lg:gap-8 lg:px-8 lg:py-5">
+              <div className="flex flex-col justify-center">
+                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--color-brand)]">
+                  OAU / CAMPUS WORK BOARD
+                </p>
+                <h1 className="mt-1 text-[26px] font-bold leading-tight text-[var(--color-ink)] sm:text-[30px]">
+                  Find work between lectures.
+                </h1>
+                <form
+                  onSubmit={submitSearch}
+                  role="search"
+                  className="mt-3 grid gap-2 border border-[var(--color-border-strong)] bg-[var(--color-background)] p-1.5 sm:grid-cols-[minmax(0,1.2fr)_minmax(150px,0.8fr)_auto]"
+                >
+                  <label className="flex min-w-0 items-center gap-2 px-2.5">
+                    <Search
+                      size={16}
+                      className="shrink-0 text-[var(--color-muted)]"
+                    />
+                    <span className="sr-only">Job title or keywords</span>
+                    <input
+                      value={q}
+                      onChange={(e) => setQ(e.target.value)}
+                      placeholder="Find a tutor, video editor..."
+                      className="w-full bg-transparent py-2 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-subtle)] focus:outline-none"
+                    />
+                  </label>
+                  <label className="flex min-w-0 items-center gap-2 border-t border-[var(--color-border)] px-2.5 sm:border-l sm:border-t-0">
+                    <MapPin
+                      size={15}
+                      className="shrink-0 text-[var(--color-muted)]"
+                    />
+                    <span className="sr-only">Campus location</span>
+                    <input
+                      value={loc}
+                      onChange={(e) => setLoc(e.target.value)}
+                      placeholder="Campus location"
+                      className="w-full bg-transparent py-2 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-subtle)] focus:outline-none"
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    id="home-search-btn"
+                    className="h-10 rounded-[4px] bg-[var(--color-brand)] px-5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-brand-2)] active:translate-y-px"
+                  >
+                    Search jobs
+                  </button>
+                </form>
+                <p className="mt-2 text-[11px] text-[var(--color-muted)]">
+                  Posting a gig?{" "}
+                  <Link
+                    href="/register/employer"
+                    className="font-semibold text-[var(--color-brand)] underline underline-offset-2"
+                  >
+                    List it here
+                  </Link>
+                </p>
+              </div>
 
-            <form
-              onSubmit={submitSearch}
-              role="search"
-              className="mt-4 flex flex-col gap-2 rounded-[var(--radius-lg)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] p-2 shadow-[var(--shadow)] sm:flex-row sm:items-center sm:rounded-full sm:p-1.5"
-            >
-              <label className="flex flex-1 items-center gap-2 px-3">
-                <Search size={18} className="shrink-0 text-[var(--color-subtle)]" />
-                <span className="sr-only">Job title or keywords</span>
-                <input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="Job title or keywords"
-                  className="w-full bg-transparent py-2 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-subtle)] focus:outline-none"
-                />
-              </label>
-
-              <div className="hidden h-7 w-px bg-[var(--color-border)] sm:block" />
-
-              <label className="flex flex-1 items-center gap-2 px-3">
-                <MapPin size={18} className="shrink-0 text-[var(--color-subtle)]" />
-                <span className="sr-only">Campus location</span>
-                <input
-                  value={loc}
-                  onChange={(e) => setLoc(e.target.value)}
-                  placeholder="Campus location"
-                  className="w-full bg-transparent py-2 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-subtle)] focus:outline-none"
-                />
-              </label>
-
-              <button
-                type="submit"
-                className="h-11 rounded-full bg-[var(--color-accent)] px-6 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-accent-2)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)]"
+              <aside
+                aria-label="Active campus gigs"
+                className="border-t border-[var(--color-border)] pt-3 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0"
               >
-                Find jobs
-              </button>
-            </form>
-
-            <p className="mt-3 text-sm text-[var(--color-muted)]">
-              Hiring on campus?{" "}
-              <Link
-                href="/register/employer"
-                className="font-medium text-[var(--color-accent)] hover:underline"
-              >
-                Register as an employer
-              </Link>
-            </p>
-          </div>
-        </section>
-
-        {/* ---------------- Feed + preview ---------------- */}
-        <section className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 sm:px-6 min-h-0 overflow-hidden">
-          <div className="grid gap-6 h-full lg:grid-cols-[minmax(340px,430px)_1fr] min-h-0">
-            {/* ===== Left: feed (independently scrollable) ===== */}
-            <div className="min-w-0 h-full overflow-y-auto pr-2 pb-12 custom-scrollbar">
-              {/* Sign-in prompt for visitors */}
-              {isAnonymous && (
-                <div className="mb-4 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-                  <p className="text-sm font-semibold text-[var(--color-ink)]">
-                    Create a student account to apply
-                  </p>
-                  <p className="mt-1 text-sm text-[var(--color-muted)]">
-                    Applications, saved jobs and your profile all live in one
-                    place.
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <Link
-                      href="/register/student"
-                      className="inline-flex h-10 items-center rounded-full bg-[var(--color-accent)] px-5 text-sm font-semibold text-white hover:bg-[var(--color-accent-2)]"
-                    >
-                      Register as a student
-                    </Link>
-                    <Link
-                      href="/login"
-                      className="inline-flex h-10 items-center rounded-full border border-[var(--color-border-strong)] px-5 text-sm font-semibold text-[var(--color-ink)] hover:bg-[var(--color-surface-2)]"
-                    >
-                      Sign in
-                    </Link>
-                  </div>
-                </div>
-              )}
-
-              {/* Results heading */}
-              {!loading && !error && jobs.length > 0 && (
-                <div className="mb-3 flex items-center justify-between">
-                  <h2 className="text-base font-semibold text-[var(--color-ink)]">
-                    {hasQuery ? "Search results" : "Jobs for you"}
+                <div className="mb-1.5 flex items-center justify-between">
+                  <h2 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--color-ink)]">
+                    <Radio size={14} className="text-[var(--color-brand)]" />
+                    {activeJobs.length > 0
+                      ? "Live from campus"
+                      : "Try a campus search"}
                   </h2>
-                  <span className="text-xs text-[var(--color-subtle)]">
-                    {total ?? jobs.length} {(total ?? jobs.length) === 1 ? "job" : "jobs"}
+                  <span className="font-mono text-[10px] text-[var(--color-muted)]">
+                    {activeJobs.length > 0 ? "LATEST POSTS" : "SEARCH IDEAS"}
                   </span>
                 </div>
-              )}
+                {activeJobs.length > 0 ? (
+                  <ul className="divide-y divide-[var(--color-border)]">
+                    {activeJobs.map((job) => (
+                      <li key={job.id}>
+                        <button
+                          type="button"
+                          onClick={() => selectJob(job.id)}
+                          className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2 text-left hover:bg-[var(--color-surface-2)]"
+                        >
+                          <span className="truncate text-[12px] font-semibold text-[var(--color-ink)]">
+                            {job.title}
+                          </span>
+                          <span className="font-mono text-[10px] text-[var(--color-brand)]">
+                            {job.compensation || "OPEN"}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <ul className="divide-y divide-[var(--color-border)]">
+                    {CAMPUS_SEARCHES.map(({ query, detail }) => (
+                      <li key={query}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setQ(query);
+                            setLoc("");
+                            setApplied({ search: query, location: "" });
+                          }}
+                          className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2 text-left hover:bg-[var(--color-surface-2)]"
+                        >
+                          <span className="truncate text-[12px] font-semibold text-[var(--color-ink)]">
+                            {query}
+                          </span>
+                          <span className="font-mono text-[10px] text-[var(--color-muted)]">
+                            {detail}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </aside>
+            </div>
+          </section>
 
-              {/* Cold-start note */}
-              {slow && (
-                <div
-                  role="status"
-                  className="mb-3 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-sm text-[var(--color-muted)]"
-                >
-                  The server is waking up. The first load can take up to a
-                  minute.
-                </div>
-              )}
+          {/* Feed + preview */}
+          <section className="w-full flex-1 px-3 py-3 sm:px-5 lg:px-6 min-h-0 overflow-hidden">
+            <div className="grid h-full min-h-0 gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] xl:gap-5">
+              {/* Left: feed */}
+              <div className="min-w-0 h-full overflow-y-auto pb-12 custom-scrollbar">
+                {/* Sign-in prompt for guests */}
+                {isAnonymous && (
+                  <div className="mb-3 border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
+                    <p className="text-sm font-semibold text-[var(--color-ink)] font-[family-name:var(--font-poppins)]">
+                      Create a student account to apply
+                    </p>
+                    <p className="mt-1 text-[12px] text-[var(--color-muted)]">
+                      Applications, saved jobs and your profile all in one
+                      place.
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Link
+                        href="/register/student"
+                        className="inline-flex h-9 items-center rounded-[4px] bg-[var(--color-brand)] px-4 text-[12px] font-semibold text-white hover:bg-[var(--color-brand-2)] transition-colors"
+                      >
+                        Register as a student
+                      </Link>
+                      <Link
+                        href="/login"
+                        className="inline-flex h-9 items-center rounded-[4px] border border-[var(--color-border-strong)] px-4 text-[12px] font-semibold text-[var(--color-ink)] hover:bg-[var(--color-surface-2)] transition-colors"
+                      >
+                        Sign in
+                      </Link>
+                    </div>
+                  </div>
+                )}
 
-              {/* Loading */}
-              {loading && jobs.length === 0 && <FeedSkeleton />}
+                {/* Results heading */}
+                {!loading && !error && jobs.length > 0 && (
+                  <div className="mb-2 flex items-center justify-between border-b border-[var(--color-ink)] pb-2">
+                    <h2 className="text-[14px] font-bold text-[var(--color-ink)]">
+                      {hasQuery ? "Search results" : "Open campus work"}
+                    </h2>
+                    <span className="font-mono text-[10px] uppercase text-[var(--color-muted)]">
+                      {total ?? jobs.length}{" "}
+                      {(total ?? jobs.length) === 1 ? "job" : "jobs"}
+                    </span>
+                  </div>
+                )}
 
-              {/* Error */}
-              {!loading && error && jobs.length === 0 && (
-                <div
-                  role="alert"
-                  className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 text-center"
-                >
-                  <p className="text-sm font-medium text-[var(--color-ink)]">
-                    {error}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => loadJobs(1, applied)}
-                    className="mt-3 inline-flex h-10 items-center gap-2 rounded-full border border-[var(--color-border-strong)] px-5 text-sm font-semibold hover:bg-[var(--color-surface-2)]"
+                {jobs.length > 0 && (
+                  <div
+                    aria-hidden="true"
+                    className="grid grid-cols-2 border-b border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1.5 font-mono text-[9px] font-semibold uppercase tracking-[0.08em] text-[var(--color-muted)] sm:grid-cols-[minmax(76px,0.65fr)_minmax(92px,0.75fr)_minmax(110px,0.85fr)_minmax(140px,1.45fr)]"
                   >
-                    <RefreshCw size={14} />
-                    Try again
-                  </button>
-                </div>
-              )}
+                    <span>Pay rate</span>
+                    <span>Deadline</span>
+                    <span className="hidden sm:block">Campus location</span>
+                    <span className="col-span-2 sm:hidden">
+                      Campus location / listing
+                    </span>
+                    <span className="hidden sm:block">Job listing</span>
+                  </div>
+                )}
 
-              {/* Empty */}
-              {!loading && !error && jobs.length === 0 && (
-                <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-8 text-center">
-                  <p className="text-sm font-semibold text-[var(--color-ink)]">
-                    {hasQuery ? "No jobs match your search" : "No open jobs yet"}
-                  </p>
-                  <p className="mt-1 text-sm text-[var(--color-muted)]">
-                    {hasQuery
-                      ? "Try different keywords or clear the location."
-                      : "Check back soon as employers post new roles."}
-                  </p>
-                  {hasQuery && (
+                {/* Cold-start note */}
+                {slow && (
+                  <div
+                    role="status"
+                    className="mb-3 border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-[12px] text-[var(--color-muted)]"
+                  >
+                    The server is waking up. The first load may take up to a
+                    minute.
+                  </div>
+                )}
+
+                {loading && jobs.length === 0 && <FeedSkeleton />}
+
+                {/* Error */}
+                {!loading && error && jobs.length === 0 && (
+                  <div
+                    role="alert"
+                    className="border border-[var(--color-border)] bg-[var(--color-surface)] p-6 text-center"
+                  >
+                    <p className="text-sm font-medium text-[var(--color-ink)]">
+                      {error}
+                    </p>
                     <button
                       type="button"
-                      onClick={clearSearch}
-                      className="mt-4 inline-flex h-10 items-center rounded-full border border-[var(--color-border-strong)] px-5 text-sm font-semibold hover:bg-[var(--color-surface-2)]"
+                      onClick={() => loadJobs(1, applied)}
+                      className="mt-3 inline-flex h-9 items-center gap-2 rounded-[4px] border border-[var(--color-border-strong)] px-4 text-[12px] font-semibold hover:bg-[var(--color-surface-2)] transition-colors"
                     >
-                      Clear search
+                      <RefreshCw size={13} />
+                      Try again
                     </button>
-                  )}
-                </div>
-              )}
+                  </div>
+                )}
 
-              {/* Cards */}
-              {jobs.length > 0 && (
-                <ul className="space-y-3">
-                  {jobs.map((job) => (
-                    <li key={job.id}>
-                      <HomeJobCard
-                        job={job}
-                        selected={job.id === selectedId}
-                        onSelect={selectJob}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              )}
+                {/* Empty */}
+                {!loading && !error && jobs.length === 0 && (
+                  <div className="border border-[var(--color-border)] bg-[var(--color-surface)] p-8 text-center">
+                    <p className="text-sm font-semibold text-[var(--color-ink)]">
+                      {hasQuery
+                        ? "No jobs match your search"
+                        : "No open jobs yet"}
+                    </p>
+                    <p className="mt-1 text-[12px] text-[var(--color-muted)]">
+                      {hasQuery
+                        ? "Try different keywords or clear the location."
+                        : "Check back soon as employers post new roles."}
+                    </p>
+                    {hasQuery && (
+                      <button
+                        type="button"
+                        onClick={clearSearch}
+                        className="mt-4 inline-flex h-9 items-center rounded-[4px] border border-[var(--color-border-strong)] px-4 text-[12px] font-semibold hover:bg-[var(--color-surface-2)] transition-colors"
+                      >
+                        Clear search
+                      </button>
+                    )}
+                  </div>
+                )}
 
-              {/* Load more */}
-              {jobs.length > 0 && hasMore && (
-                <div className="mt-4 flex justify-center">
-                  <button
-                    type="button"
-                    disabled={loadingMore}
-                    onClick={() => loadJobs(page + 1, applied)}
-                    className="inline-flex h-10 items-center rounded-full border border-[var(--color-border-strong)] px-6 text-sm font-semibold hover:bg-[var(--color-surface-2)] disabled:opacity-60"
+                {/* Cards */}
+                {jobs.length > 0 && (
+                  <ul className="divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]">
+                    {jobs.map((job) => (
+                      <li key={job.id}>
+                        <HomeJobCard
+                          job={job}
+                          selected={job.id === selectedId}
+                          onSelect={selectJob}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {/* Load more */}
+                {jobs.length > 0 && hasMore && (
+                  <div className="mt-4 flex justify-center">
+                    <button
+                      type="button"
+                      disabled={loadingMore}
+                      onClick={() => loadJobs(page + 1, applied)}
+                      className="inline-flex h-9 items-center rounded-[4px] border border-[var(--color-border-strong)] px-5 text-[12px] font-semibold hover:bg-[var(--color-surface-2)] disabled:opacity-60 transition-colors"
+                    >
+                      {loadingMore ? "Loading…" : "Show more jobs"}
+                    </button>
+                  </div>
+                )}
+
+                {error && jobs.length > 0 && (
+                  <p
+                    role="alert"
+                    className="mt-3 text-center text-[12px] text-[var(--color-muted)]"
                   >
-                    {loadingMore ? "Loading..." : "Show more jobs"}
-                  </button>
-                </div>
-              )}
+                    {error}
+                  </p>
+                )}
+              </div>
 
-              {/* Load-more failure keeps the existing list visible */}
-              {error && jobs.length > 0 && (
-                <p role="alert" className="mt-3 text-center text-sm text-[var(--color-muted)]">
-                  {error}
-                </p>
-              )}
+              {/* Right: preview panel (desktop) */}
+              <aside
+                aria-label="Job preview"
+                className="hidden lg:block h-full min-h-0 overflow-hidden rounded-[4px] border border-[var(--color-border)] bg-[var(--color-surface)]"
+              >
+                {selectedJob ? (
+                  <HomeJobDetail key={selectedJob.id} job={selectedJob} />
+                ) : (
+                  !loading && <DetailPlaceholder />
+                )}
+              </aside>
             </div>
+          </section>
+        </main>
 
-            {/* ===== Right: preview panel (independently scrollable desktop only) ===== */}
-            <aside
-              aria-label="Job preview"
-              className="hidden lg:block h-full overflow-y-auto rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] custom-scrollbar"
-            >
-              {selectedJob ? (
-                <HomeJobDetail key={selectedJob.id} job={selectedJob} />
-              ) : (
-                !loading && <DetailPlaceholder />
-              )}
-            </aside>
+        {/* Mobile job sheet */}
+        {sheetOpen && selectedJob && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={selectedJob.title}
+            className="fixed inset-0 z-50 flex flex-col bg-[var(--color-surface)] lg:hidden"
+          >
+            <div className="flex items-center gap-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3">
+              <button
+                type="button"
+                onClick={() => setSheetOpen(false)}
+                aria-label="Back to jobs"
+                className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-[var(--color-surface-2)] text-[var(--color-muted)] hover:text-[var(--color-ink)] transition-colors"
+              >
+                <ArrowLeft size={17} />
+              </button>
+              <span className="truncate text-sm font-semibold text-[var(--color-ink)] font-[family-name:var(--font-poppins)]">
+                {selectedJob.title}
+              </span>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <HomeJobDetail job={selectedJob} showStickyCta />
+            </div>
           </div>
-        </section>
-      </main>
-
-      {/* ---------------- Mobile sheet ---------------- */}
-      {sheetOpen && selectedJob && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label={selectedJob.title}
-          className="fixed inset-0 z-50 flex flex-col bg-[var(--color-background)] lg:hidden"
-        >
-          <div className="flex items-center gap-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3">
-            <button
-              type="button"
-              onClick={() => setSheetOpen(false)}
-              aria-label="Back to jobs"
-              className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-[var(--color-surface-2)]"
-            >
-              <ArrowLeft size={18} />
-            </button>
-            <span className="truncate text-sm font-semibold text-[var(--color-ink)]">
-              {selectedJob.title}
-            </span>
-          </div>
-          <div className="flex-1 overflow-y-auto">
-            <HomeJobDetail job={selectedJob} showStickyCta />
-          </div>
-        </div>
-      )}
+        )}
       </div>
 
       <BottomNav role={role} />

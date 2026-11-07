@@ -1,16 +1,10 @@
-import { Sora, Outfit, JetBrains_Mono } from "next/font/google";
+import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { SidebarProvider } from "@/context/SidebarContext";
 
-const sora = Sora({
-  variable: "--font-sora",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const outfit = Outfit({
-  variable: "--font-outfit",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
   subsets: ["latin"],
   display: "swap",
 });
@@ -23,13 +17,17 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata = {
   title: "OAU Campus Jobs",
-  description: "Connecting Obafemi Awolowo University students with campus employers",
+  description:
+    "Connecting Obafemi Awolowo University students with verified campus employment opportunities.",
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${sora.variable} ${outfit.variable} ${jetbrainsMono.variable} h-full`}>
-      <body className="min-h-full antialiased">
+    <html
+      lang="en"
+      className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} h-full`}
+    >
+      <body className="min-h-full antialiased bg-[var(--color-background)] text-[var(--color-ink)]">
         <AuthProvider>
           <SidebarProvider>{children}</SidebarProvider>
         </AuthProvider>
